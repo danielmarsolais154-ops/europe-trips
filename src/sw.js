@@ -33,15 +33,17 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  if (req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) {
+  const scopePath = new URL(self.registration.scope).pathname;
+  const isApp = url.pathname === scopePath || url.pathname === scopePath + 'index.html';
+  if (isApp) {
     e.respondWith((async () => {
       const c = await caches.open(APP);
       try {
         const ctl = new AbortController();
         const timer = setTimeout(() => ctl.abort(), 4000);
-        const r = await fetch(req, {signal: ctl.signal, cache: 'no-cache'});
+        const r = await fetch(url.origin + url.pathname, {signal: ctl.signal, cache: 'no-cache'});
         clearTimeout(timer);
-        if (r.ok) c.put('index.html', r.clone());
+        if (r.ok && (r.headers.get('content-type') || '').includes('text/html')) c.put('index.html', r.clone());
         return r;
       } catch (err) {
         return (await c.match('index.html')) || (await c.match('./')) || Response.error();
