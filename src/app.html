@@ -382,6 +382,23 @@ body[data-view="map"] #sections{display:none!important}
   .rb.big{width:56px;height:56px}
   .rb.mid{width:48px;height:48px}
 }
+
+/* install guide */
+.ig{position:fixed;inset:0;z-index:1050;background:rgba(10,12,14,.5);display:flex;align-items:flex-end;justify-content:center;padding:0}
+.ig-in{background:var(--surface);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:22px 20px calc(22px + var(--sab));box-shadow:var(--lift);display:flex;flex-direction:column;gap:14px}
+@media (min-width:761px){ .ig{align-items:center;padding:16px} .ig-in{border-radius:18px} }
+.ig-head{display:flex;gap:14px;align-items:center}
+.ig-head img{width:56px;height:56px;border-radius:13px;flex:none;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.ig h2{margin:0;font:italic 400 28px/1.05 var(--serif)}
+.ig p{margin:0;color:var(--muted);font-size:14.5px}
+.ig ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.ig li{counter-increment:s;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start;font-size:15.5px;line-height:1.45}
+.ig li::before{content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;font-size:14px}
+.ig .glyph{display:inline-flex;vertical-align:-5px;width:24px;height:24px;border:1px solid var(--line);border-radius:6px;align-items:center;justify-content:center;margin:0 2px;color:var(--accent);background:var(--paper)}
+.ig .glyph svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ig .row{justify-content:space-between}
+.ig-point{position:fixed;z-index:1051;bottom:calc(6px + var(--sab));left:50%;transform:translateX(-50%);color:#fff;font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;animation:igb 1.2s ease-in-out infinite;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+@keyframes igb{50%{transform:translate(-50%,6px)}}
 @media (hover:none){ .card.skip:hover{opacity:.48} }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -485,6 +502,11 @@ body[data-view="map"] #sections{display:none!important}
     <div class="panel-h"><h2 id="ph">My picks</h2><button class="btn" id="pclose">Close</button></div>
     <div class="panel-b">
       <div class="status-card" id="saveCard"></div>
+      <section id="installSec" hidden>
+        <h3>Install on this device</h3>
+        <p id="installText">Add it to your Home Screen so it opens like an app and works offline.</p>
+        <div class="row"><button class="btn primary" id="installBtn">Show me how</button></div>
+      </section>
       <section id="offlineSec">
         <h3>Offline photos</h3>
         <p id="offlineText"></p>
@@ -516,6 +538,37 @@ body[data-view="map"] #sections{display:none!important}
           <button class="linkbtn" id="resetBtn">Clear this trip’s decisions</button>
         </div>
       </section>
+    </div>
+  </div>
+</div>
+
+<div class="ig" id="ig" hidden>
+  <div class="ig-in" role="dialog" aria-modal="true" aria-labelledby="igTitle">
+    <div class="ig-head"><img src="icons/apple-touch-icon.png" alt=""><div><h2 id="igTitle">Put Europe on your Home Screen</h2></div></div>
+    <div id="igSafari">
+      <p style="margin-bottom:12px">Then it opens like an app, works with no internet and keeps your picks. Apple only lets you do this from Safari’s own buttons, so it takes three taps:</p>
+      <ol>
+        <li><span>Tap <span class="glyph"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></span> <b>Share</b> in Safari’s toolbar. On newer iPhones, tap <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></span> first, then <b>Share</b>.</span></li>
+        <li><span>Scroll down and tap <span class="glyph"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg></span> <b>Add to Home Screen</b>. Not there? Tap <b>Edit Actions</b> at the bottom to switch it on. If the page has a <b>Done</b> button in the top corner, you’re inside another app: tap the compass icon to open it in Safari first.</span></li>
+        <li><span>Tap <b>Add</b>, then open <b>Europe</b> from your Home Screen.</span></li>
+      </ol>
+    </div>
+    <div id="igOther" hidden>
+      <p style="margin-bottom:12px">You’re viewing this inside another app’s browser, which can’t add to the Home Screen. Open it in Safari instead:</p>
+      <ol>
+        <li><span>Tap <b>Copy link</b> below.</span></li>
+        <li><span>Open <b>Safari</b>, tap the address bar and paste.</span></li>
+        <li><span>Then follow the steps that appear there.</span></li>
+      </ol>
+    </div>
+    <div id="igAndroid" hidden><p>Install it as an app so it opens from your home screen, works with no internet and keeps your picks.</p></div>
+    <div class="row">
+      <button class="linkbtn" id="igNever">Don’t show this again</button>
+      <span class="row">
+        <button class="btn" id="igCopy" hidden>Copy link</button>
+        <button class="btn primary" id="igInstall" hidden>Install app</button>
+        <button class="btn primary" id="igOk">Got it</button>
+      </span>
     </div>
   </div>
 </div>
@@ -1167,7 +1220,7 @@ function backupJSON(){ return JSON.stringify({app:'europe-four-seasons', version
 const exportOpen = () => !$('#panel').hidden;
 function openExport(){
   $('#exportText').value = exportText();
-  renderSaveCard(); renderOffline();
+  renderSaveCard(); renderOffline(); renderInstall();
   $('#panel').hidden = false;
   $$('.tabbar button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === 'picks'));
 }
@@ -1261,6 +1314,41 @@ function registerSW(){
       });
     });
   }).catch(() => {});
+}
+
+/* install: iPhone needs Safari's own Share button; Android and desktop Chrome get a real prompt */
+const UA = navigator.userAgent;
+const IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const IOS_SAFARI = IOS && /Safari\//.test(UA) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\/|Instagram|FBAN|FBAV|Line\//i.test(UA);
+let deferredPrompt = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; renderInstall(); });
+addEventListener('appinstalled', () => { deferredPrompt = null; $('#ig').hidden = true; renderInstall(); toast('Installed. Open it from your home screen.', 3500); });
+function canGuide(){ return HOSTED && !STANDALONE && (IOS || deferredPrompt); }
+function renderInstall(){
+  const sec = $('#installSec');
+  sec.hidden = !canGuide();
+  if (deferredPrompt && !IOS){ $('#installText').textContent = 'Install it so it opens like an app and works offline.'; $('#installBtn').textContent = 'Install app'; }
+}
+function openGuide(){
+  if (deferredPrompt && !IOS){ installNow(); return; }
+  $('#igSafari').hidden = !IOS_SAFARI;
+  $('#igOther').hidden = !IOS || IOS_SAFARI;
+  $('#igAndroid').hidden = IOS;
+  $('#igCopy').hidden = !IOS || IOS_SAFARI;
+  $('#igInstall').hidden = !deferredPrompt;
+  $('#ig').hidden = false;
+}
+async function installNow(){
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  try{ await deferredPrompt.userChoice; }catch(e){}
+  deferredPrompt = null; renderInstall();
+}
+function maybeGuide(){
+  if (!canGuide() || prefs.noGuide) return false;
+  if (IOS){ openGuide(); return true; }
+  return false;
 }
 async function maybeAutoOffline(){
   if (!HOSTED || !PHOTO_IDS.length || !('caches' in window) || prefs.offlineAsked) return;
@@ -1362,7 +1450,7 @@ function wire(){
   $('#pclose').onclick = closeExport;
   $('#panel').addEventListener('click', e => { if (e.target.id === 'panel') closeExport(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape'){ closeExport(); closeRail(); return; }
+    if (e.key === 'Escape'){ closeExport(); closeRail(); $('#ig').hidden = true; return; }
     if (document.body.dataset.view !== 'swipe' || exportOpen() || e.target.matches('input,textarea')) return;
     if (e.key === 'ArrowRight'){ e.preventDefault(); decide('keep'); }
     else if (e.key === 'ArrowLeft'){ e.preventDefault(); decide('skip'); }
@@ -1413,6 +1501,12 @@ function wire(){
     toast('Cleared');
   };
   $('#offlineBtn').onclick = saveOffline;
+  $('#installBtn').onclick = () => { closeExport(); openGuide(); };
+  $('#igOk').onclick = () => { $('#ig').hidden = true; };
+  $('#igNever').onclick = () => { prefs.noGuide = true; store.set(PREFKEY, prefs); $('#ig').hidden = true; toast('You can find these steps under Picks any time'); };
+  $('#igInstall').onclick = () => { $('#ig').hidden = true; installNow(); };
+  $('#igCopy').onclick = async () => { try{ await navigator.clipboard.writeText(location.href.split('#')[0]); toast('Link copied. Now open Safari and paste it.', 3500); }catch(e){ toast(location.href.split('#')[0], 6000); } };
+  $('#ig').addEventListener('click', e => { if (e.target.id === 'ig') $('#ig').hidden = true; });
   addEventListener('online', () => { if (mapReady) tileLabel(); });
   addEventListener('offline', () => { if (mapReady) tileLabel(); });
   addEventListener('resize', () => { if (mapReady && document.body.dataset.view === 'map') map.invalidateSize(); });
@@ -1424,7 +1518,8 @@ showSaved(true, true);
 if (prefs.view === 'map' || prefs.view === 'swipe') setView(prefs.view);
 if (Object.keys(dec[S]).length || prefs.savedAt) persist();
 registerSW();
-setTimeout(maybeAutoOffline, 2500);
+renderInstall();
+setTimeout(() => { if (!maybeGuide()) maybeAutoOffline(); }, 1800);
 </script>
 </body>
 </html>
