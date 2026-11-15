@@ -367,7 +367,8 @@ body[data-view="map"] #sections{display:none!important}
   body[data-view="map"] .mapview{position:fixed;top:calc(57px + var(--sat));left:0;right:0;bottom:calc(var(--tabh) + var(--sab));padding:0;z-index:5}
   body[data-view="map"] .maphead{position:absolute;z-index:500;left:10px;right:10px;top:10px;margin:0;pointer-events:none}
   body[data-view="map"] .maphead h2{display:none}
-  body[data-view="map"] .legend{pointer-events:auto;background:var(--surface);border-radius:999px;padding:7px 14px;box-shadow:var(--shadow);font-size:12.5px;gap:4px 12px}
+  body[data-view="map"] .legend{pointer-events:auto;background:var(--surface);border-radius:999px;padding:7px 12px;box-shadow:var(--shadow);font-size:11.5px;gap:4px 9px;flex-wrap:nowrap;white-space:nowrap;justify-content:center}
+  body[data-view="map"] .legend span{gap:4px}
   body[data-view="map"] #map{height:100%;min-height:0;border-radius:0;box-shadow:none}
   body[data-view="map"] .mapnote{display:none}
   .leaflet-top.leaflet-left{top:52px}
@@ -1022,14 +1023,14 @@ function initMap(){
   layer = L.layerGroup().addTo(map);
   const Ctl = L.Control.extend({onAdd(){ const b = L.DomUtil.create('button', 'mapctl'); b.id = 'tileBtn'; L.DomEvent.disableClickPropagation(b); b.onclick = toggleTiles; return b; }});
   new Ctl({position:'bottomleft'}).addTo(map);
-  if (prefs.tiles !== false && navigator.onLine) addTiles(); else tileLabel();
+  if (prefs.tiles === true && navigator.onLine) addTiles(); else tileLabel();
   mapReady = true;
   drawMarkers();
 }
 function dark(){ return matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark'; }
 function addTiles(){
-  tiles = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark() ? 'dark_all' : 'rastertiles/voyager'}/{z}/{x}/{y}{r}.png`, {
-    maxZoom:19, subdomains:'abcd', attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
   let errs = 0;
   tiles.on('tileerror', () => { if (++errs === 6 && tiles){ map.removeLayer(tiles); tiles = null; tileLabel(); } });
