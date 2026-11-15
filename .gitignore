@@ -1,0 +1,4 @@
+site/
+vendor/
+__pycache__/
+src/old_parts.txt

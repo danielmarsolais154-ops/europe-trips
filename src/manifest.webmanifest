@@ -1,0 +1,16 @@
+{
+  "name": "Europe, four seasons",
+  "short_name": "Europe",
+  "description": "Four seasonal trip guides to Europe: keep, maybe or skip every idea, swipe through them, and see your picks on a map.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F1F3F7",
+  "theme_color": "#2D4A8C",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
