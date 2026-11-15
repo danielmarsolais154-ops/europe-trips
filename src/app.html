@@ -492,8 +492,8 @@ body[data-view="map"] #sections{display:none!important}
         <div class="row"><button class="btn primary" id="offlineBtn">Save all photos for offline</button></div>
       </section>
       <section>
-        <h3 id="exportTitle">Send my picks to Claude</h3>
-        <p>Copy this and paste it into the chat, or save it as a file.</p>
+        <h3 id="exportTitle">Share my picks</h3>
+        <p>Copy this list to paste anywhere, or save it as a file.</p>
         <textarea id="exportText" readonly aria-label="Exported picks"></textarea>
         <div class="row">
           <button class="btn primary" id="copyBtn">Copy picks</button>
@@ -599,7 +599,7 @@ function applyTheme(){
   $('#seasonTitle').textContent = m.name;
   $('#lede').innerHTML = `<b>${esc(m.span)}.</b> ${esc(m.blurb)}`;
   $('#tbSeason').value = S; $('#tbSeasonName').textContent = m.name;
-  $('#exportTitle').textContent = `Send my ${m.name.toLowerCase()} picks to Claude`;
+  $('#exportTitle').textContent = `Share my ${m.name.toLowerCase()} picks`;
 }
 
 function decButtons(id, st, withNote, note){
