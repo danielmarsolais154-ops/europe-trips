@@ -311,7 +311,10 @@ body[data-view="map"] #sections{display:none!important}
   .rail-h{display:flex;justify-content:space-between;align-items:center}
   .rail-h h2{margin:0;font:italic 400 28px/1 var(--serif)}
   .topbar{display:flex;position:sticky;top:0;z-index:800;gap:10px;align-items:center;padding:10px 16px;padding-top:calc(10px + var(--sat));background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-  .topbar .tb-s{font:italic 500 21px/1 var(--serif);color:var(--accent);flex:none}
+  .topbar .tb-s{flex:none;position:relative;display:flex;align-items:center;gap:4px;color:var(--accent)}
+  .topbar .tb-s b{font:italic 500 22px/1.1 var(--serif);padding-right:16px}
+  .topbar .tb-s select{position:absolute;inset:0;width:100%;opacity:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
+  .topbar .tb-s::after{content:"";position:absolute;right:2px;top:50%;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);pointer-events:none}
   .topbar .tb-c{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .topbar .btn{padding:8px 14px;font-size:13.5px;flex:none}
   .topbar .btn .n{background:var(--accent);color:var(--surface);border-radius:999px;font-size:11px;padding:1px 6px;min-width:18px}
@@ -408,7 +411,7 @@ body[data-view="map"] #sections{display:none!important}
 </header>
 
 <div class="topbar" id="topbar">
-  <span class="tb-s" id="tbSeason"></span>
+  <label class="tb-s" title="Switch trip"><b id="tbSeasonName"></b><select id="tbSeason" aria-label="Which trip"><option value="sp">Spring</option><option value="su">Summer</option><option value="fa">Fall</option><option value="wi">Winter</option></select></label>
   <span class="tb-c" id="tbInfo"></span>
   <button class="btn" id="railbtn"><svg class="ico" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="n" id="fcount" hidden></span></button>
 </div>
@@ -595,7 +598,7 @@ function applyTheme(){
   $('#trips').innerHTML = SK.map(k => `<button data-season="${k}" aria-current="${k === S}">${SEASON_NAMES[k]}</button>`).join('');
   $('#seasonTitle').textContent = m.name;
   $('#lede').innerHTML = `<b>${esc(m.span)}.</b> ${esc(m.blurb)}`;
-  $('#tbSeason').textContent = m.name;
+  $('#tbSeason').value = S; $('#tbSeasonName').textContent = m.name;
   $('#exportTitle').textContent = `Send my ${m.name.toLowerCase()} picks to Claude`;
 }
 
@@ -1348,6 +1351,7 @@ function wire(){
     }
   });
   let t; $('#q').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { q = e.target.value.trim().toLowerCase(); applyFilters(); }, 150); });
+  $('#tbSeason').onchange = e => setSeason(e.target.value);
   $('#q').addEventListener('keydown', e => { if (e.key === 'Enter' && narrow()){ e.target.blur(); closeRail(); } });
   $('#hideSkip').onchange = applyFilters;
   $('#onlySeason').onchange = applyFilters;
@@ -1372,7 +1376,15 @@ function wire(){
   };
   if (navigator.share){
     $('#shareBtn').hidden = false;
-    $('#shareBtn').onclick = async () => { try{ await navigator.share({title:`Europe ${DATA.seasons[S].name} picks`, text: $('#exportText').value}); }catch(e){} };
+    $('#shareBtn').onclick = async () => {
+      const text = $('#exportText').value;
+      try{ await navigator.share({text}); }
+      catch(e){
+        if (e && e.name === 'AbortError') return;
+        try{ await navigator.clipboard.writeText(text); toast('Sharing isn’t available here, so I copied your picks instead'); }
+        catch(err){ $('#exportText').select(); toast('Sharing isn’t available here. Your picks are selected; tap Copy.'); }
+      }
+    };
   }
   $('#dlMd').onclick = () => download(`europe-${DATA.seasons[S].name.toLowerCase()}-picks.md`, $('#exportText').value, 'text/markdown');
   $('#dlJson').onclick = async () => {
