@@ -76,11 +76,15 @@ def build():
         "/*__FONTS__*/": font_css(),
         "/*__LEAFLET_CSS__*/": read("leaflet.css"),
         "/*__LEAFLET_JS__*/": read("leaflet.js").replace("</script", "<\\/script"),
+        "/*__FIREBASE_JS__*/": read("firebase.bundle.js").replace("</script", "<\\/script"),
         "__PHOTOS_MB__": str(max(1, round(total_bytes / 1e6))),
         "__VERSION__": version,
     }
     for a, b in rep.items():
         html = html.replace(a, b)
+    cfg_path = os.path.join(SRC, "firebase-config.json")
+    fbcfg = json.load(open(cfg_path)) if os.path.exists(cfg_path) and not os.environ.get("NO_SYNC") else None
+    html = html.replace("__FIREBASE_CONFIG__", json.dumps(fbcfg))
     html = html.replace("__PHOTOS__", json.dumps(photos, separators=(",", ":")))
     html = html.replace("__BASEMAP__", basemap)
     html = html.replace("__DATA__", js_data)

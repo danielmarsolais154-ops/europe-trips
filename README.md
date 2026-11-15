@@ -9,3 +9,9 @@ and the whole thing works offline once installed.
 - `tools/build.py` assembles `site/`, which GitHub Pages publishes.
 
 Photos come from Wikipedia and Wikimedia Commons; each card links to its Wikipedia article.
+
+## Sharing between devices
+
+Each person's picks sync through Firebase (Firestore, offline-first). `src/firebase-config.json` holds the public web config;
+access is limited by Firestore rules to a private trip code that is never stored in this repository.
+`src/firebase.bundle.js` is built from `tools/fb/entry.js` with esbuild.

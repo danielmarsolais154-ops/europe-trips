@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Europe, four seasons</title>
-<meta name="description" content="Four seasonal trip guides to Europe with keep, maybe and skip decisions, a swipe mode and a map.">
+<meta name="description" content="Four seasonal trip guides to Europe with keep, maybe and skip decisions, a swipe mode, a shared view and a map.">
 <meta name="theme-color" content="#2D4A8C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -13,20 +13,22 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>try{var t=JSON.parse(localStorage.getItem('euro-trip-prefs-v2')||'{}').theme;if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>/*__FONTS__*/</style>
 <style>/*__LEAFLET_CSS__*/</style>
 <style id="seasonvars"></style>
 <style>
-/* One app for four seasonal field guides: poster band in the season colour, filter rail, a section per country, swipe deck and map. Phone gets a bottom tab bar. */
+/* Four seasonal field guides in one app: a poster band in the season colour, a section per country, swipe deck, a shared "Together" view and a map. */
 :root{
   color-scheme: light;
-  --surface:#FFFFFF;
-  --ink:#15181B; --muted:#565E66; --faint:#88909A;
+  --surface:#FFFFFF; --raise:#FFFFFF;
+  --ink:#15181B; --muted:#58606A; --faint:#8A929C;
   --keep:#2E7D5B; --keep-soft:#E1EFE7; --keep-ink:#1C4F39;
   --maybe:#C98B2B; --maybe-soft:#F6EBD6; --maybe-ink:#6B4710;
   --skip:#B4573F; --skip-soft:#F4E2DC; --skip-ink:#6E2E1F;
   --open:#A2AAB3; --on-status:#FFFFFF;
-  --shadow:0 1px 2px rgba(21,24,27,.05),0 8px 24px rgba(21,24,27,.07);
+  --ring:0 0 0 1px color-mix(in srgb,var(--line) 80%,transparent);
+  --shadow:0 1px 2px rgba(21,24,27,.05),0 6px 20px rgba(21,24,27,.06);
   --lift:0 2px 6px rgba(21,24,27,.08),0 18px 40px rgba(21,24,27,.16);
   --serif:'Bodoni Moda','Didot','Bodoni 72',Georgia,serif;
   --sans:'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -35,24 +37,26 @@
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   color-scheme: dark;
-  --surface:#1A1E22;
-  --ink:#ECEFF2; --muted:#A0A9B2; --faint:#717B85;
+  --surface:#181C20; --raise:#1F2429;
+  --ink:#ECEFF2; --muted:#A3ACB5; --faint:#727C86;
   --keep:#5BB08A; --keep-soft:#1A2E25; --keep-ink:#A9D9C2;
   --maybe:#DDA851; --maybe-soft:#33281A; --maybe-ink:#F0D3A1;
   --skip:#CF7A62; --skip-soft:#35221D; --skip-ink:#EDB7A7;
   --open:#5F6973; --on-status:#14181B;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  --ring:0 0 0 1px rgba(255,255,255,.06);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
   --lift:0 2px 6px rgba(0,0,0,.4),0 18px 40px rgba(0,0,0,.5);
 }}
 :root[data-theme="dark"]{
   color-scheme: dark;
-  --surface:#1A1E22;
-  --ink:#ECEFF2; --muted:#A0A9B2; --faint:#717B85;
+  --surface:#181C20; --raise:#1F2429;
+  --ink:#ECEFF2; --muted:#A3ACB5; --faint:#727C86;
   --keep:#5BB08A; --keep-soft:#1A2E25; --keep-ink:#A9D9C2;
   --maybe:#DDA851; --maybe-soft:#33281A; --maybe-ink:#F0D3A1;
   --skip:#CF7A62; --skip-soft:#35221D; --skip-ink:#EDB7A7;
   --open:#5F6973; --on-status:#14181B;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  --ring:0 0 0 1px rgba(255,255,255,.06);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
   --lift:0 2px 6px rgba(0,0,0,.4),0 18px 40px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box}
@@ -65,50 +69,70 @@ button{cursor:pointer}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 [hidden]{display:none!important}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}
 .dot.keep{background:var(--keep)} .dot.maybe{background:var(--maybe)} .dot.skip{background:var(--skip)} .dot.open{background:var(--open)}
-.ico{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ico{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+
+/* avatars */
+.av{width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;font:italic 600 15px/1 var(--serif);flex:none;background:var(--ink);color:var(--paper)}
+.av.sm{width:20px;height:20px;font-size:11.5px}
+.av.ring-keep{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--keep)}
+.av.ring-maybe{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--maybe)}
+.av.ring-skip{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--skip)}
+.av.p1{background:#20242A;color:#fff} .av.p2{background:#E8E3DA;color:#20242A}
+:root[data-theme="dark"] .av.p1{background:#ECEFF2;color:#14181B}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .av.p1{background:#ECEFF2;color:#14181B} }
 
 /* masthead: the poster band */
-.mast{background:var(--mast-bg);color:var(--mast-ink);padding:calc(30px + var(--sat)) 28px 26px}
-.mast-in{max-width:1500px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:24px 48px;align-items:end}
-.trips{display:flex;gap:22px;flex-wrap:wrap;margin:0 0 6px;position:relative;z-index:2}
-.trips button{font:italic 400 19px/1.2 var(--serif);color:inherit;background:none;border:0;padding:0 0 3px;opacity:.62;border-bottom:1.5px solid transparent}
+.mast{background:var(--mast-bg);color:var(--mast-ink);padding:calc(22px + var(--sat)) 32px 30px}
+.mast-in{max-width:1480px;margin:0 auto}
+.mtop{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:6px}
+.trips{display:flex;gap:22px;flex-wrap:wrap;position:relative;z-index:2}
+.trips button{font:italic 400 19px/1.2 var(--serif);color:inherit;background:none;border:0;padding:0 0 3px;opacity:.6;border-bottom:1.5px solid transparent}
 .trips button:hover{opacity:1}
 .trips button[aria-current="true"]{opacity:1;border-color:currentColor}
-.season{margin:0;padding-bottom:.14em;font:italic 400 clamp(92px,15vw,212px)/.86 var(--serif);letter-spacing:-.035em;margin-left:-.04em}
-.lede{margin:4px 0 0;max-width:58ch;font-size:16.5px;line-height:1.5}
+.mtools{display:flex;gap:8px;align-items:center;position:relative;z-index:2}
+.chip{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:4px 12px 4px 4px;font-weight:600;font-size:13.5px;background:color-mix(in srgb,var(--mast-ink) 14%,transparent);color:inherit}
+.chip .av{background:var(--mast-ink);color:var(--mast-bg)}
+.chip.icon{padding:7px;width:36px;height:36px;justify-content:center}
+.chip:hover{background:color-mix(in srgb,var(--mast-ink) 22%,transparent)}
+.mgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:20px 56px;align-items:end}
+.season{margin:0;padding-bottom:.12em;font:italic 400 clamp(92px,14vw,200px)/.86 var(--serif);letter-spacing:-.035em;margin-left:-.04em}
+.lede{margin:6px 0 0;max-width:56ch;font-size:16px;line-height:1.55;opacity:.95}
 .lede b{font:600 1.05em/1 var(--serif);font-style:italic}
 .side{display:flex;flex-direction:column;gap:14px}
 .tally{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 14px}
-.tally div{display:flex;flex-direction:column;gap:2px}
+.tally div{display:flex;flex-direction:column;gap:3px}
 .tally b{font:500 40px/1 var(--serif);font-variant-numeric:lining-nums tabular-nums}
-.tally span{font-size:13px;display:flex;align-items:center;gap:6px;opacity:.88}
-.tally .dot{width:10px;height:10px;box-shadow:0 0 0 2px rgba(255,255,255,.85)}
-.bar{height:7px;border-radius:4px;background:color-mix(in srgb,var(--mast-ink) 22%,transparent);overflow:hidden;display:flex}
+.tally span{font-size:12.5px;display:flex;align-items:center;gap:6px;opacity:.85}
+.tally .dot{width:9px;height:9px;box-shadow:0 0 0 2px rgba(255,255,255,.85)}
+.bar{height:6px;border-radius:3px;background:color-mix(in srgb,var(--mast-ink) 22%,transparent);overflow:hidden;display:flex}
 .bar i{display:block;height:100%}
-.saved{font-size:12.5px;opacity:.8;display:flex;align-items:center;gap:6px;min-height:18px}
-.saved .ico{width:15px;height:15px;stroke-width:2.2}
+.saved{font-size:12.5px;opacity:.82;display:flex;align-items:center;gap:7px;min-height:18px}
+.saved .ico{width:14px;height:14px;stroke-width:2.4}
+.saved .pulse{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.8}
+.saved.live .pulse{background:#7BE0A8;opacity:1;box-shadow:0 0 0 3px rgba(123,224,168,.25)}
 .saved.warn{opacity:1;font-weight:700}
 .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:999px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:999px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:var(--ink);white-space:nowrap}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--accent);color:var(--surface);border-color:var(--accent)}
 .mast .btn.primary{background:var(--mast-ink);color:var(--mast-bg);border-color:var(--mast-ink);padding-inline:20px}
-.views{display:inline-grid;grid-template-columns:repeat(3,auto);border:1.5px solid color-mix(in srgb,var(--mast-ink) 55%,transparent);border-radius:999px;padding:3px}
-.views button{border:0;background:none;color:inherit;padding:6px 16px;border-radius:999px;font-weight:600;font-size:14px}
+.views{display:inline-grid;grid-auto-flow:column;border:1.5px solid color-mix(in srgb,var(--mast-ink) 50%,transparent);border-radius:999px;padding:3px}
+.views button{border:0;background:none;color:inherit;padding:6px 15px;border-radius:999px;font-weight:600;font-size:14px}
 .views button[aria-pressed="true"]{background:var(--mast-ink);color:var(--mast-bg)}
 
 /* shell */
-.shell{max-width:1500px;margin:0 auto;display:grid;grid-template-columns:300px minmax(0,1fr);gap:0 36px;padding-inline:28px}
-.rail{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding-block:22px 48px;display:flex;flex-direction:column;gap:20px;scrollbar-width:thin}
+.shell{max-width:1480px;margin:0 auto;display:grid;grid-template-columns:292px minmax(0,1fr);gap:0 44px;padding-inline:32px}
+.rail{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding-block:28px 48px;display:flex;flex-direction:column;gap:24px;scrollbar-width:thin}
 .rail-h{display:none}
-.search{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);-webkit-appearance:none;appearance:none}
+.search{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);-webkit-appearance:none;appearance:none}
 .search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.fhead{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 8px}
+.fhead{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 10px}
 .fhead h2{margin:0;font:italic 500 17px/1 var(--serif)}
-.seg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
-.seg button{grid-column:span 2;border:0;border-right:1px solid var(--line);border-top:1px solid var(--line);background:none;padding:8px 6px 7px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.seg button{grid-column:span 2;border:0;border-right:1px solid var(--line);border-top:1px solid var(--line);background:none;padding:9px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:13px;font-weight:600;color:var(--muted)}
 .seg button.wide{grid-column:span 3;border-top:0}
 .seg button:nth-child(2),.seg button:last-child{border-right:0}
 .seg button .n{font:500 12px/1.2 var(--sans);color:var(--faint);font-variant-numeric:tabular-nums}
@@ -117,56 +141,62 @@ a{color:var(--accent)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .seg button[aria-pressed="true"] .n{color:color-mix(in srgb,var(--paper) 70%,transparent)}
 .types{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
-.types button{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:center;border:0;background:none;text-align:left;padding:6px 6px;border-radius:6px;font-size:14px;color:var(--ink)}
+.types button{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:center;border:0;background:none;text-align:left;padding:6px;border-radius:8px;font-size:14px;color:var(--ink)}
 .types button:hover{background:var(--sunken)}
 .types .box{width:16px;height:16px;border:1.5px solid var(--faint);border-radius:4px;display:grid;place-items:center}
 .types .n{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
 .types button[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent)}
 .types button[aria-pressed="true"] .box::after{content:"";width:8px;height:4px;border:2px solid var(--surface);border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg)}
 .types button[aria-pressed="true"] .lbl{font-weight:600}
-.switches{display:flex;flex-direction:column;gap:10px}
+.switches{display:flex;flex-direction:column;gap:12px}
 .switch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;font-size:14px;cursor:pointer}
-.switch input{appearance:none;-webkit-appearance:none;width:34px;height:20px;border-radius:999px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .15s}
-.switch input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.switch input{appearance:none;-webkit-appearance:none;width:36px;height:22px;border-radius:999px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .15s}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
 .switch input:checked{background:var(--accent)}
 .switch input:checked::after{transform:translateX(14px)}
 .clist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
-.clist a{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;text-decoration:none;color:var(--ink);padding:6px 8px;border-radius:8px;font-size:14px}
+.clist a{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;text-decoration:none;color:var(--ink);padding:7px 8px;border-radius:9px;font-size:14px}
 .clist a:hover{background:var(--sunken)}
 .clist a.on{background:var(--accent-soft)}
 .clist a.empty{opacity:.4}
-.clist .cc{font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--accent)}
+.clist .cc{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--accent)}
 .clist .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .clist .ct{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;display:flex;gap:8px;align-items:center}
 .clist .ct em{font-style:normal;font-weight:700;display:flex;align-items:center;gap:3px}
 .clist .ct em .dot{width:7px;height:7px}
-.clist .rg{font:italic 500 16px/1 var(--serif);color:var(--muted);padding:16px 8px 6px}
+.clist .rg{font:italic 500 16px/1 var(--serif);color:var(--muted);padding:18px 8px 6px}
 .clist li:first-child.rg{padding-top:4px}
 .clist .allc .cc{font-size:15px}
-main{padding-block:16px 120px;min-width:0}
+main{padding-block:12px 120px;min-width:0}
 
 /* country section */
-.country{padding-top:56px;scroll-margin-top:8px}
-.chead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:10px 40px;align-items:start;border-top:1px solid var(--ink);padding-top:22px}
-.cname{margin:0;font:400 clamp(44px,5.6vw,80px)/.92 var(--serif);letter-spacing:-.025em;text-wrap:balance}
-.cname .cnt{font:italic 400 .34em/1 var(--serif);color:var(--muted);letter-spacing:0;margin-left:.35em;white-space:nowrap}
-.facts{display:flex;flex-wrap:wrap;gap:4px 18px;color:var(--muted);font-size:13.5px;margin-top:14px}
+.country{padding-top:64px;scroll-margin-top:8px}
+.chead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:14px 48px;align-items:end;border-top:1px solid var(--ink);padding-top:20px}
+.chead .eyebrow{margin-bottom:10px}
+.cname{margin:0;font:400 clamp(44px,5.4vw,78px)/.95 var(--serif);letter-spacing:-.025em;text-wrap:balance}
+.cname .cnt{font:italic 400 .32em/1 var(--serif);color:var(--muted);letter-spacing:0;margin-left:.4em;white-space:nowrap}
+.facts{color:var(--muted);font-size:13.5px;margin-top:14px;line-height:1.6}
+.facts span{display:inline}
+.facts span:not(:last-child)::after{content:"·";margin:0 8px;color:var(--faint)}
 .facts b{color:var(--ink);font-weight:600}
-.intro{margin:14px 0 0;max-width:62ch;font-size:16px}
-.wx{border-left:3px solid var(--accent);padding:4px 0 4px 16px;align-self:end}
-.wx .t{font:italic 500 34px/1 var(--serif);color:var(--accent);font-variant-numeric:lining-nums}
-.wx p{margin:8px 0 0;font-size:14px;line-height:1.5;color:var(--muted)}
-.ctools{grid-column:1/-1;font-size:13px;display:flex;gap:18px;flex-wrap:wrap}
+.intro{margin:14px 0 0;max-width:60ch;font-size:16px;line-height:1.6}
+.wx{background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:var(--ring)}
+.wx .t{font:italic 500 30px/1 var(--serif);color:var(--accent);font-variant-numeric:lining-nums}
+.wx p{margin:8px 0 0;font-size:13.5px;line-height:1.5;color:var(--muted)}
+.ctools{grid-column:1/-1;display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill .ico{width:16px;height:16px}
 .linkbtn{background:none;border:none;padding:2px 0;color:var(--muted);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;font-size:13px}
 .linkbtn:hover{color:var(--ink);text-decoration-color:currentColor}
 .linkbtn.armed{color:var(--skip);font-weight:700}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:18px;margin-top:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px;margin-top:26px}
 
 /* card */
-.card{background:var(--surface);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-width:0;box-shadow:0 0 0 1px var(--line);transition:box-shadow .15s,opacity .15s;content-visibility:auto;contain-intrinsic-size:auto 560px}
-.card.keep{box-shadow:0 0 0 2px var(--keep)}
-.card.maybe{box-shadow:0 0 0 2px var(--maybe)}
-.card.skip{opacity:.48}
+.card{background:var(--surface);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-width:0;box-shadow:var(--ring),var(--shadow);transition:box-shadow .15s,opacity .15s;content-visibility:auto;contain-intrinsic-size:auto 560px}
+.card.keep{box-shadow:0 0 0 2px var(--keep),var(--shadow)}
+.card.maybe{box-shadow:0 0 0 2px var(--maybe),var(--shadow)}
+.card.skip{opacity:.5}
 .card.skip:hover{opacity:.85}
 .card.flash{box-shadow:0 0 0 3px var(--accent)}
 .ph{position:relative;aspect-ratio:3/2;background:var(--sunken);overflow:hidden}
@@ -175,38 +205,47 @@ main{padding-block:16px 120px;min-width:0}
 .ph .fb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--faint);font-size:13px;text-align:center;padding:12px}
 .ph .fb b{font:italic 400 34px/1 var(--serif);color:var(--line)}
 .ph .fb a{font-size:12px;position:relative;z-index:2}
-.stamp{position:absolute;z-index:2;top:10px;left:10px;font-size:12.5px;font-weight:700;padding:4px 10px 4px 8px;border-radius:999px;display:flex;align-items:center;gap:6px;background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.2)}
-.body{padding:14px 16px 12px;display:flex;flex-direction:column;gap:7px;flex:1}
-.meta{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted)}
-.meta .cat{font-weight:700;color:var(--accent);white-space:nowrap}
+.stamp{position:absolute;z-index:2;top:12px;left:12px;font-size:12px;font-weight:700;padding:5px 11px 5px 9px;border-radius:999px;display:flex;align-items:center;gap:6px;background:var(--surface);color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,.18)}
+.stamp.both{background:var(--keep);color:var(--on-status)}
+.stamp.both .dot{background:currentColor}
+.partner{position:absolute;z-index:2;top:12px;right:12px;display:flex;align-items:center;gap:6px;background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 10px 3px 3px;font-size:12px;font-weight:700;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+.body{padding:16px 18px 6px;display:flex;flex-direction:column;gap:8px;flex:1}
+.meta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
+.meta .cat{font-weight:700;color:var(--accent);white-space:nowrap;letter-spacing:.02em}
 .meta .loc{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card h3{margin:0;font:600 21px/1.15 var(--serif);letter-spacing:-.01em;text-wrap:balance}
-.when{font-size:13px;border-left:2px solid var(--accent);padding:1px 0 1px 9px;line-height:1.45;color:var(--ink)}
+.card h3{margin:0;font:600 22px/1.15 var(--serif);letter-spacing:-.01em;text-wrap:balance}
+.when{font-size:13px;border-left:2px solid var(--accent);padding:1px 0 1px 10px;line-height:1.45;color:var(--ink)}
 .when b{font-weight:700;color:var(--accent)}
-.desc{margin:0;font-size:14.5px;line-height:1.5}
+.desc{margin:0;font-size:14.5px;line-height:1.55}
+.foot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
 .also{font-size:12px;color:var(--faint)}
-.links{display:flex;gap:14px;font-size:12.5px;margin-top:auto;padding-top:4px;flex-wrap:wrap}
+.links{display:flex;gap:14px;font-size:12.5px;flex-wrap:wrap}
 .links a{color:var(--muted);text-decoration-color:var(--line);text-underline-offset:3px}
 .links a:hover{color:var(--ink)}
-.dec{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;padding:10px 12px 12px}
-.dec button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 4px;font-weight:600;font-size:13.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px}
-.dec button .dot{width:8px;height:8px}
-.dec button:hover{border-color:var(--faint);color:var(--ink)}
-.dec button[data-s="keep"][aria-pressed="true"]{background:var(--keep);border-color:var(--keep);color:var(--on-status)}
-.dec button[data-s="maybe"][aria-pressed="true"]{background:var(--maybe);border-color:var(--maybe);color:var(--on-status)}
-.dec button[data-s="skip"][aria-pressed="true"]{background:var(--skip);border-color:var(--skip);color:var(--on-status)}
-.dec button[aria-pressed="true"] .dot{background:currentColor}
-.dec .nb{padding-inline:12px}
-.dec .nb.has{color:var(--accent);border-color:var(--accent)}
-.note{display:none;padding:0 12px 12px}
+.dec{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px 14px 14px;align-items:center}
+.seg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.seg3 button{border:0;background:none;padding:9px 4px;font-weight:600;font-size:13.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px}
+.seg3 button+button{border-left:1px solid var(--line)}
+.seg3 button:hover{color:var(--ink);background:var(--sunken)}
+.seg3 button[data-s="keep"][aria-pressed="true"]{background:var(--keep);color:var(--on-status)}
+.seg3 button[data-s="maybe"][aria-pressed="true"]{background:var(--maybe);color:var(--on-status)}
+.seg3 button[data-s="skip"][aria-pressed="true"]{background:var(--skip);color:var(--on-status)}
+.seg3 button[aria-pressed="true"] .dot{background:currentColor}
+.seg3 button[aria-pressed="true"]+button{border-left-color:transparent}
+.nb{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:grid;place-items:center;padding:0}
+.nb .ico{width:18px;height:18px}
+.nb.has{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.note{display:none;padding:0 14px 14px}
 .note.open{display:block}
-.note textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--paper);resize:vertical;font-size:16px}
+.note textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--paper);resize:vertical;font-size:16px}
+.pnote{margin:0;font-size:13px;color:var(--muted);background:var(--sunken);border-radius:10px;padding:8px 10px}
+.pnote b{color:var(--ink)}
 .empty-state{padding:40px 0;color:var(--muted)}
 
 /* swipe deck */
 .swipeview{display:none}
 body[data-view="swipe"] .swipeview{display:grid}
-body[data-view="swipe"] #sections, body[data-view="swipe"] .mapview{display:none!important}
+body[data-view="swipe"] #sections, body[data-view="swipe"] .mapview, body[data-view="swipe"] .togview{display:none!important}
 .swipeview{grid-template-rows:auto minmax(0,1fr) auto;gap:14px;height:calc(100vh - 40px);max-height:900px;min-height:560px;max-width:460px;margin:24px auto 0;position:sticky;top:20px}
 .sw-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .sw-top h2{margin:0;font:italic 400 30px/1 var(--serif)}
@@ -215,7 +254,7 @@ body[data-view="swipe"] #sections, body[data-view="swipe"] .mapview{display:none
 .sw-modes button{border:0;background:none;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--muted)}
 .sw-modes button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .deck{position:relative;min-height:0}
-.scard{position:absolute;inset:0;background:var(--surface);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--lift);touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform;transform-origin:50% 110%}
+.scard{position:absolute;inset:0;background:var(--surface);border-radius:22px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--lift);touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform;transform-origin:50% 110%}
 .scard.under{transform:scale(.95) translateY(10px);box-shadow:var(--shadow);transition:transform .25s}
 .scard.under .sbody,.scard.under .ph img{pointer-events:none}
 .scard.top{cursor:grab;z-index:2}
@@ -224,17 +263,16 @@ body[data-view="swipe"] #sections, body[data-view="swipe"] .mapview{display:none
 .scard.back{transition:transform .25s cubic-bezier(.3,1.3,.5,1)}
 .scard .ph{aspect-ratio:auto;flex:1 1 52%;min-height:150px}
 .scard .ph img{-webkit-user-drag:none;pointer-events:none}
-.scard .ph::after{content:"";position:absolute;inset:auto 0 0 0;height:30%;background:linear-gradient(transparent,rgba(0,0,0,.28));z-index:1;pointer-events:none}
-.scard .cflag{position:absolute;z-index:2;left:14px;bottom:12px;color:#fff;font:italic 500 18px/1.1 var(--serif);text-shadow:0 1px 6px rgba(0,0,0,.55)}
-.sbody{flex:0 1 auto;padding:14px 18px 16px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+.scard .ph::after{content:"";position:absolute;inset:auto 0 0 0;height:32%;background:linear-gradient(transparent,rgba(0,0,0,.32));z-index:1;pointer-events:none}
+.scard .cflag{position:absolute;z-index:2;left:16px;bottom:14px;color:#fff;font:italic 500 19px/1.1 var(--serif);text-shadow:0 1px 6px rgba(0,0,0,.55)}
+.scard .partner{top:auto;bottom:12px;right:12px}
+.sbody{flex:0 1 auto;padding:16px 20px 18px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
 .scard h3{margin:0;font:600 clamp(24px,6.6vw,30px)/1.08 var(--serif);letter-spacing:-.015em;text-wrap:balance}
 .scard .desc{font-size:15px;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
-.scard .links{margin-top:2px}
 .slabel{position:absolute;z-index:3;top:26px;padding:6px 14px;border:3px solid currentColor;border-radius:10px;font:800 26px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;opacity:0;background:color-mix(in srgb,var(--surface) 82%,transparent);pointer-events:none}
 .slabel.k{left:22px;color:var(--keep);transform:rotate(-12deg)}
 .slabel.x{right:22px;color:var(--skip);transform:rotate(12deg)}
 .slabel.m{left:50%;top:auto;bottom:46%;color:var(--maybe);transform:translateX(-50%)}
-.sstate{position:absolute;z-index:3;top:12px;right:12px}
 .sbtns{display:flex;align-items:center;justify-content:center;gap:16px;padding:10px 0 4px}
 .rb{border:1.5px solid var(--line);background:var(--surface);border-radius:50%;display:grid;place-items:center;box-shadow:var(--shadow);color:var(--muted);padding:0;transition:transform .12s}
 .rb:active{transform:scale(.92)}
@@ -247,14 +285,49 @@ body[data-view="swipe"] #sections, body[data-view="swipe"] .mapview{display:none
 .rb.x{color:var(--skip);border-color:color-mix(in srgb,var(--skip) 45%,var(--line))}
 .rb.m{color:var(--maybe);border-color:color-mix(in srgb,var(--maybe) 45%,var(--line))}
 .rb:disabled{opacity:.35;cursor:default}
-.sw-hint{text-align:center;font-size:12.5px;color:var(--faint);margin:-6px 0 0}
-.sw-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px;border:1.5px dashed var(--line);border-radius:20px;color:var(--muted)}
+.sw-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px;border:1.5px dashed var(--line);border-radius:22px;color:var(--muted)}
 .sw-empty h3{margin:0;font:italic 400 34px/1.05 var(--serif);color:var(--ink)}
 .sw-note{position:absolute;z-index:4;inset:auto 0 0 0;background:var(--surface);padding:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 .sw-note textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--paper);font-size:16px}
 
+/* together view */
+.togview{display:none;padding-top:28px}
+body[data-view="together"] .togview{display:block}
+body[data-view="together"] #sections, body[data-view="together"] .mapview{display:none!important}
+.tog-h{display:flex;justify-content:space-between;align-items:end;gap:12px 24px;flex-wrap:wrap}
+.tog-h h2{margin:0;font:400 clamp(40px,4.6vw,64px)/.95 var(--serif);letter-spacing:-.02em}
+.tog-h p{margin:8px 0 0;color:var(--muted);font-size:14px}
+.duo{display:flex;align-items:center}
+.duo .av{width:40px;height:40px;font-size:20px;box-shadow:0 0 0 3px var(--paper)}
+.duo .av+.av{margin-left:-10px}
+.tog-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 6px}
+.tt{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:13.5px;color:var(--muted)}
+.tt b{font-variant-numeric:tabular-nums;color:var(--ink)}
+.tt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tt[aria-pressed="true"] b{color:var(--paper)}
+.tog-help{font-size:13.5px;color:var(--muted);margin:10px 0 0}
+.tog-banner{margin-top:18px;background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:var(--ring);font-size:14px;color:var(--muted);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tog-list{margin-top:10px}
+.tog-c{font:italic 500 22px/1.1 var(--serif);margin:30px 0 10px;display:flex;align-items:baseline;gap:10px}
+.tog-c small{font:500 12.5px var(--sans);color:var(--faint)}
+.trow{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--surface);border-radius:14px;padding:10px;box-shadow:var(--ring);margin-bottom:8px}
+.trow .ph{aspect-ratio:1;border-radius:10px;width:72px}
+.trow .ph .fb b{font-size:16px}
+.trow .ph .fb span{display:none}
+.trow h4{margin:0;font:600 17px/1.2 var(--serif);cursor:pointer}
+.trow h4:hover{color:var(--accent)}
+.trow .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.trow .who{display:flex;gap:10px;margin-top:7px;flex-wrap:wrap}
+.trow .who > span{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
+.mini{display:flex;gap:6px}
+.mini button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--muted);padding:0}
+.mini button .ico{width:17px;height:17px;stroke-width:2.2}
+.mini button[data-s="keep"][aria-pressed="true"]{background:var(--keep);border-color:var(--keep);color:var(--on-status)}
+.mini button[data-s="maybe"][aria-pressed="true"]{background:var(--maybe);border-color:var(--maybe);color:var(--on-status)}
+.mini button[data-s="skip"][aria-pressed="true"]{background:var(--skip);border-color:var(--skip);color:var(--on-status)}
+
 /* map view */
-.mapview{padding-top:24px}
+.mapview{padding-top:28px}
 body:not([data-view="map"]) .mapview{display:none}
 body[data-view="map"] #sections{display:none!important}
 .maphead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:10px 24px;margin-bottom:14px}
@@ -263,125 +336,59 @@ body[data-view="map"] #sections{display:none!important}
 .legend span{display:flex;align-items:center;gap:7px}
 .legend b{font-variant-numeric:tabular-nums}
 .mapnote{font-size:13px;color:var(--muted);margin:10px 0 0}
-#map{height:calc(100vh - 150px);min-height:440px;border-radius:14px;box-shadow:0 0 0 1px var(--line);background:var(--sea);z-index:0}
+#map{height:calc(100vh - 150px);min-height:440px;border-radius:16px;box-shadow:var(--ring);background:var(--sea);z-index:0}
 .leaflet-container{font:inherit;background:var(--sea)}
-.leaflet-popup-content-wrapper{border-radius:12px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.leaflet-popup-content-wrapper{border-radius:14px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
 .leaflet-popup-tip{background:var(--surface)}
 .leaflet-popup-content{margin:14px 16px;width:260px!important}
-.pop .ph{border-radius:8px;margin-bottom:10px;aspect-ratio:16/9}
+.pop .ph{border-radius:10px;margin-bottom:10px;aspect-ratio:16/9}
 .pop .meta{margin-bottom:4px}
 .pop h3{margin:0 0 6px;font:600 20px/1.15 var(--serif)}
 .pop p{margin:0 0 8px;font-size:13.5px;line-height:1.45}
 .pop .when{margin-bottom:8px}
-.pop .dec{padding:4px 0 0;grid-template-columns:1fr 1fr 1fr}
+.pop .dec{padding:4px 0 0;grid-template-columns:1fr}
+.pop .who{display:flex;gap:10px;margin:0 0 8px;font-size:12px;font-weight:600;color:var(--muted)}
+.pop .who > span{display:inline-flex;gap:5px;align-items:center}
 .pop .go{margin-top:8px;font-size:13px}
 .leaflet-control-attribution{font-size:10px}
-.mapctl{background:var(--surface);color:var(--ink);border:0;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:7px 10px;font-size:12.5px;font-weight:600}
+.mapctl{background:var(--surface);color:var(--ink);border:0;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.3);padding:8px 11px;font-size:12.5px;font-weight:600;margin-top:6px}
+.leaflet-bar a{background:var(--surface);color:var(--ink);border-color:var(--line)}
 
 /* picks panel */
 .panel{position:fixed;inset:0;background:rgba(10,12,14,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:1000}
-.panel-in{background:var(--surface);border-radius:16px;max-width:820px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.panel-in{background:var(--surface);border-radius:18px;max-width:780px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--shadow)}
 .panel-h{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line);gap:12px}
-.panel-h h2{margin:0;font:italic 400 34px/1 var(--serif)}
-.panel-b{padding:18px 22px 24px;overflow:auto;display:flex;flex-direction:column;gap:22px;-webkit-overflow-scrolling:touch}
+.panel-h h2{margin:0;font:italic 400 32px/1 var(--serif)}
+.panel-b{padding:20px 22px 26px;overflow:auto;display:flex;flex-direction:column;gap:26px;-webkit-overflow-scrolling:touch}
 .panel-b section{display:flex;flex-direction:column;gap:10px}
 .panel-b h3{margin:0;font:italic 500 20px/1.1 var(--serif)}
-.panel-b textarea{width:100%;min-height:260px;font:13px/1.5 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--paper)}
+.panel-b textarea{width:100%;min-height:240px;font:13px/1.5 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--paper)}
 .panel-b p{margin:0;color:var(--muted);font-size:14px}
 .status-card{display:flex;gap:12px;align-items:flex-start;background:var(--keep-soft);color:var(--keep-ink);border-radius:12px;padding:12px 14px;font-size:14px}
 .status-card .ico{margin-top:1px}
 .status-card.warn{background:var(--skip-soft);color:var(--skip-ink)}
+.status-card.info{background:var(--sunken);color:var(--ink)}
 .progress{height:8px;border-radius:4px;background:var(--sunken);overflow:hidden}
 .progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.segbtns{display:inline-grid;grid-auto-flow:column;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--paper)}
+.segbtns button{border:0;background:none;border-radius:999px;padding:7px 14px;font-weight:600;font-size:13.5px;color:var(--muted);display:inline-flex;align-items:center;gap:7px}
+.segbtns button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.field{display:flex;gap:8px}
+.field input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:16px}
 .toast{position:fixed;bottom:calc(20px + var(--tabh) + var(--sab));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-weight:600;z-index:1100;max-width:calc(100vw - 32px);text-align:center;font-size:14px}
 .toast button{background:none;border:0;color:inherit;text-decoration:underline;font-weight:700;margin-left:8px;padding:0}
 
-/* compact bar + tab bar (phone/tablet) */
-.topbar{display:none}
-.tabbar{display:none}
-.scrim{display:none}
-
-@media (max-width:1000px){
-  .shell{grid-template-columns:minmax(0,1fr);padding-inline:16px}
-  .rail{position:fixed;inset:0 auto 0 0;width:min(340px,90vw);background:var(--paper);z-index:900;padding:18px 16px 40px;border-right:1px solid var(--line);box-shadow:var(--shadow);transform:translateX(-105%);transition:transform .22s;height:100%;visibility:hidden}
-  .rail.open{transform:none;visibility:visible}
-  .scrim{display:block;position:fixed;inset:0;background:rgba(10,12,14,.4);z-index:890;opacity:0;pointer-events:none;transition:opacity .2s}
-  .scrim.on{opacity:1;pointer-events:auto}
-  .rail-h{display:flex;justify-content:space-between;align-items:center}
-  .rail-h h2{margin:0;font:italic 400 28px/1 var(--serif)}
-  .topbar{display:flex;position:sticky;top:0;z-index:800;gap:10px;align-items:center;padding:10px 16px;padding-top:calc(10px + var(--sat));background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-  .topbar .tb-s{flex:none;position:relative;display:flex;align-items:center;gap:4px;color:var(--accent)}
-  .topbar .tb-s b{font:italic 500 22px/1.1 var(--serif);padding-right:16px}
-  .topbar .tb-s select{position:absolute;inset:0;width:100%;opacity:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
-  .topbar .tb-s::after{content:"";position:absolute;right:2px;top:50%;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);pointer-events:none}
-  .topbar .tb-c{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .topbar .btn{padding:8px 14px;font-size:13.5px;flex:none}
-  .topbar .btn .n{background:var(--accent);color:var(--surface);border-radius:999px;font-size:11px;padding:1px 6px;min-width:18px}
-  .chead{grid-template-columns:minmax(0,1fr)}
-  .wx{align-self:start}
-  .mast{padding:calc(22px + var(--sat)) 16px 20px}
-  .mast-in{grid-template-columns:minmax(0,1fr)}
-  .country{padding-top:40px;scroll-margin-top:64px}
-  #map{height:calc(100vh - 210px)}
-}
-
-@media (max-width:760px){
-  :root{--tabh:58px}
-  body{padding-bottom:calc(var(--tabh) + var(--sab))}
-  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:950;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:var(--sab)}
-  .tabbar button{border:0;background:none;height:var(--tabh);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--faint);position:relative}
-  .tabbar button[aria-pressed="true"]{color:var(--accent)}
-  .tabbar button[aria-pressed="true"]::before{content:"";position:absolute;top:0;left:30%;right:30%;height:2.5px;border-radius:0 0 3px 3px;background:var(--accent)}
-  .tabbar .badge{position:absolute;top:7px;left:calc(50% + 8px);background:var(--keep);color:var(--on-status);font-size:10px;line-height:1;padding:3px 5px;border-radius:999px}
-  .mast .actions{display:none}
-  .season{font-size:clamp(64px,21vw,96px)}
-  .trips{gap:16px;margin-bottom:10px}
-  .trips button{font-size:17px}
-  .lede{font-size:15px}
-  .tally b{font-size:30px}
-  .tally span{font-size:12px}
-  .side{gap:10px}
-  .shell{padding-inline:12px}
-  main{padding-block:4px 40px}
-  .country{padding-top:34px}
-  .cname{font-size:clamp(40px,12vw,56px)}
-  .grid{grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px}
-  .card{border-radius:14px;contain-intrinsic-size:auto 600px}
-  .card h3{font-size:23px}
-  .dec{padding:10px 12px 14px;gap:8px}
-  .dec button{min-height:44px;font-size:14.5px}
-  .rail{inset:auto 0 0 0;width:auto;height:88vh;height:88dvh;border-right:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(105%);padding:14px 16px calc(28px + var(--sab))}
-  .rail::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:-4px auto 2px;flex:none}
-  .search{font-size:16px}
-  .panel{padding:0;align-items:flex-end}
-  .panel-in{border-radius:18px 18px 0 0;max-height:94vh;max-height:94dvh}
-  .panel-h{padding:14px 16px}
-  .panel-h h2{font-size:28px}
-  .panel-b{padding:16px 16px calc(28px + var(--sab))}
-  .panel-b textarea{min-height:200px}
-  /* full-screen swipe and map on phone */
-  body[data-view="swipe"] .mast, body[data-view="map"] .mast{display:none}
-  body[data-view="swipe"], body[data-view="map"]{overflow:hidden}
-  .swipeview{position:fixed;top:calc(57px + var(--sat));left:0;right:0;bottom:calc(var(--tabh) + var(--sab));height:auto;max-height:none;min-height:0;margin:0;padding:12px 14px 10px;max-width:none;gap:12px;z-index:5}
-  .sw-top h2{font-size:24px}
-  .sw-modes button{padding:6px 10px}
-  .rb.big{width:62px;height:62px}
-  body[data-view="map"] .mapview{position:fixed;top:calc(57px + var(--sat));left:0;right:0;bottom:calc(var(--tabh) + var(--sab));padding:0;z-index:5}
-  body[data-view="map"] .maphead{position:absolute;z-index:500;left:10px;right:10px;top:10px;margin:0;pointer-events:none}
-  body[data-view="map"] .maphead h2{display:none}
-  body[data-view="map"] .legend{pointer-events:auto;background:var(--surface);border-radius:999px;padding:7px 12px;box-shadow:var(--shadow);font-size:11.5px;gap:4px 9px;flex-wrap:nowrap;white-space:nowrap;justify-content:center}
-  body[data-view="map"] .legend span{gap:4px}
-  body[data-view="map"] #map{height:100%;min-height:0;border-radius:0;box-shadow:none}
-  body[data-view="map"] .mapnote{display:none}
-  .leaflet-top.leaflet-left{top:52px}
-  .toast{bottom:auto;top:calc(66px + var(--sat))}
-}
-@media (max-width:760px) and (max-height:700px){
-  .scard .desc{-webkit-line-clamp:4}
-  .rb.big{width:56px;height:56px}
-  .rb.mid{width:48px;height:48px}
-}
+/* who's planning */
+.who-sheet{position:fixed;inset:0;z-index:1060;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:calc(24px + var(--sat)) 20px calc(24px + var(--sab))}
+.who-in{width:100%;max-width:420px;display:flex;flex-direction:column;gap:22px;text-align:center}
+.who-in h2{margin:0;font:italic 400 44px/1 var(--serif)}
+.who-in p{margin:0;color:var(--muted)}
+.who-opts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.who-opts button{border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:26px 12px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;font:600 18px var(--sans);box-shadow:var(--shadow)}
+.who-opts button:hover{border-color:var(--accent)}
+.who-opts .av{width:72px;height:72px;font-size:36px}
+.who-in .alt{display:flex;flex-direction:column;gap:10px}
 
 /* install guide */
 .ig{position:fixed;inset:0;z-index:1050;background:rgba(10,12,14,.5);display:flex;align-items:flex-end;justify-content:center;padding:0}
@@ -397,30 +404,148 @@ body[data-view="map"] #sections{display:none!important}
 .ig .glyph{display:inline-flex;vertical-align:-5px;width:24px;height:24px;border:1px solid var(--line);border-radius:6px;align-items:center;justify-content:center;margin:0 2px;color:var(--accent);background:var(--paper)}
 .ig .glyph svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ig .row{justify-content:space-between}
-.ig-point{position:fixed;z-index:1051;bottom:calc(6px + var(--sab));left:50%;transform:translateX(-50%);color:#fff;font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;animation:igb 1.2s ease-in-out infinite;text-shadow:0 1px 4px rgba(0,0,0,.6)}
-@keyframes igb{50%{transform:translate(-50%,6px)}}
-@media (hover:none){ .card.skip:hover{opacity:.48} }
+
+/* compact bar + tab bar (phone/tablet) */
+.topbar{display:none}
+.tabbar{display:none}
+.scrim{display:none}
+
+@media (max-width:1000px){
+  .shell{grid-template-columns:minmax(0,1fr);padding-inline:20px}
+  .rail{position:fixed;inset:0 auto 0 0;width:min(340px,90vw);background:var(--paper);z-index:900;padding:18px 16px 40px;border-right:1px solid var(--line);box-shadow:var(--shadow);transform:translateX(-105%);transition:transform .22s;height:100%;visibility:hidden}
+  .rail.open{transform:none;visibility:visible}
+  .scrim{display:block;position:fixed;inset:0;background:rgba(10,12,14,.4);z-index:890;opacity:0;pointer-events:none;transition:opacity .2s}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .rail-h{display:flex;justify-content:space-between;align-items:center}
+  .rail-h h2{margin:0;font:italic 400 28px/1 var(--serif)}
+  .topbar{display:flex;position:sticky;top:0;z-index:800;gap:10px;align-items:center;padding:9px 16px;padding-top:calc(9px + var(--sat));background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+  .topbar .tb-s{flex:none;position:relative;display:flex;align-items:center;gap:4px;color:var(--accent)}
+  .topbar .tb-s b{font:italic 500 22px/1.1 var(--serif);padding-right:16px}
+  .topbar .tb-s select{position:absolute;inset:0;width:100%;opacity:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
+  .topbar .tb-s::after{content:"";position:absolute;right:2px;top:50%;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);pointer-events:none}
+  .topbar .tb-c{flex:1;min-width:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+  .topbar .tb-c b{display:block;color:var(--ink);font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+  .topbar .btn{padding:8px 13px;font-size:13.5px;flex:none}
+  .topbar .btn .n{background:var(--accent);color:var(--surface);border-radius:999px;font-size:11px;padding:1px 6px;min-width:18px}
+  .topbar .tb-who{border:0;background:none;padding:0;flex:none}
+  .chead{grid-template-columns:minmax(0,1fr)}
+  .mast{padding:calc(18px + var(--sat)) 20px 22px}
+  .mgrid{grid-template-columns:minmax(0,1fr)}
+  .country{padding-top:44px;scroll-margin-top:64px}
+  #map{height:calc(100vh - 210px)}
+}
+
+@media (max-width:760px){
+  :root{--tabh:58px}
+  body{padding-bottom:calc(var(--tabh) + var(--sab))}
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:950;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);padding-bottom:var(--sab)}
+  .tabbar button{border:0;background:none;height:var(--tabh);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:600;color:var(--faint);position:relative}
+  .tabbar button[aria-pressed="true"]{color:var(--accent)}
+  .tabbar button[aria-pressed="true"]::before{content:"";position:absolute;top:0;left:32%;right:32%;height:2.5px;border-radius:0 0 3px 3px;background:var(--accent)}
+  .tabbar .badge{position:absolute;top:7px;left:calc(50% + 7px);background:var(--keep);color:var(--on-status);font-size:10px;line-height:1;padding:3px 5px;border-radius:999px}
+  .mast{padding:calc(14px + var(--sat)) 18px 20px}
+  .mast .actions{display:none}
+  .mtop{margin-bottom:10px}
+  .trips{gap:14px}
+  .trips button{font-size:16.5px}
+  .chip{padding:3px;font-size:0;gap:0}
+  .chip .nm{display:none}
+  .chip.icon{width:34px;height:34px}
+  .season{font-size:clamp(62px,19vw,88px);padding-bottom:.1em}
+  .lede{font-size:14.5px;line-height:1.5;margin-top:2px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .mgrid{gap:16px}
+  .tally{gap:2px 10px}
+  .tally b{font-size:27px}
+  .tally span{font-size:11.5px}
+  .side{gap:10px}
+  .shell{padding-inline:14px}
+  main{padding-block:2px 40px}
+  .country{padding-top:36px}
+  .chead{gap:12px;padding-top:16px}
+  .chead .eyebrow{margin-bottom:6px}
+  .cname{font-size:clamp(38px,11vw,52px)}
+  .cname .cnt{display:block;margin:8px 0 0;font-size:15px}
+  .facts{font-size:12.5px;margin-top:10px}
+  .intro{font-size:15px;margin-top:10px}
+  .wx{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;padding:12px 14px}
+  .wx .t{font-size:24px}
+  .wx p{margin:0;font-size:13px}
+  .grid{grid-template-columns:minmax(0,1fr);gap:16px;margin-top:18px}
+  .card{border-radius:18px;contain-intrinsic-size:auto 600px}
+  .card h3{font-size:23px}
+  .body{padding:16px 16px 4px}
+  .dec{padding:12px 12px 14px}
+  .seg3 button{min-height:44px;font-size:14.5px}
+  .nb{width:44px;height:44px}
+  .rail{inset:auto 0 0 0;width:auto;height:88vh;height:88dvh;border-right:0;border-top:1px solid var(--line);border-radius:20px 20px 0 0;transform:translateY(105%);padding:14px 16px calc(28px + var(--sab))}
+  .rail::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:-4px auto 2px;flex:none}
+  .search{font-size:16px}
+  .panel{padding:0;align-items:flex-end}
+  .panel-in{border-radius:20px 20px 0 0;max-height:94vh;max-height:94dvh}
+  .panel-h{padding:14px 16px}
+  .panel-h h2{font-size:28px}
+  .panel-b{padding:16px 16px calc(28px + var(--sab));gap:24px}
+  .panel-b textarea{min-height:200px}
+  body[data-view="swipe"] .mast, body[data-view="map"] .mast, body[data-view="together"] .mast{display:none}
+  body[data-view="swipe"], body[data-view="map"]{overflow:hidden}
+  .swipeview{position:fixed;top:calc(57px + var(--sat));left:0;right:0;bottom:calc(var(--tabh) + var(--sab));height:auto;max-height:none;min-height:0;margin:0;padding:12px 14px 10px;max-width:none;gap:12px;z-index:5}
+  .sw-top h2{font-size:24px}
+  .sw-modes button{padding:6px 10px}
+  .rb.big{width:62px;height:62px}
+  .togview{padding-top:18px}
+  .tog-h h2{font-size:40px}
+  .tog-tabs{flex-wrap:nowrap;overflow-x:auto;margin:16px -14px 4px;padding:0 14px 6px;scrollbar-width:none}
+  .tog-tabs::-webkit-scrollbar{display:none}
+  .tt{flex:none}
+  .trow{grid-template-columns:60px minmax(0,1fr);gap:12px}
+  .trow .ph{width:60px}
+  .trow .mini{grid-column:1/-1;justify-content:flex-end;margin-top:-4px}
+  body[data-view="map"] .mapview{position:fixed;top:calc(57px + var(--sat));left:0;right:0;bottom:calc(var(--tabh) + var(--sab));padding:0;z-index:5}
+  body[data-view="map"] .maphead{position:absolute;z-index:500;left:10px;right:10px;top:10px;margin:0;pointer-events:none}
+  body[data-view="map"] .maphead h2{display:none}
+  body[data-view="map"] .legend{pointer-events:auto;background:var(--surface);border-radius:999px;padding:7px 12px;box-shadow:var(--shadow);font-size:11.5px;gap:4px 9px;flex-wrap:nowrap;white-space:nowrap;justify-content:center}
+  body[data-view="map"] .legend span{gap:4px}
+  body[data-view="map"] #map{height:100%;min-height:0;border-radius:0;box-shadow:none}
+  body[data-view="map"] .mapnote{display:none}
+  .leaflet-top.leaflet-left{top:52px}
+  .toast{bottom:auto;top:calc(66px + var(--sat))}
+}
+@media (max-width:760px) and (max-height:700px){
+  .scard .desc{-webkit-line-clamp:4}
+  .rb.big{width:56px;height:56px}
+  .rb.mid{width:48px;height:48px}
+}
+@media (hover:none){ .card.skip:hover{opacity:.5} }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body data-view="cards">
 <header class="mast" id="mast">
   <div class="mast-in">
-    <div>
-      <nav class="trips" id="trips" aria-label="Season"></nav>
-      <h1 class="season" id="seasonTitle"></h1>
-      <p class="lede" id="lede"></p>
+    <div class="mtop">
+      <nav class="trips" id="trips" aria-label="Trip"></nav>
+      <div class="mtools">
+        <button class="chip" id="whoBtn" title="Switch person"><span class="av" id="whoAv">?</span><span class="nm" id="whoName">Who?</span></button>
+        <button class="chip icon" id="themeBtn" title="Light or dark"></button>
+      </div>
     </div>
-    <div class="side">
-      <div class="tally" id="tally"></div>
-      <div class="bar" id="bar" aria-hidden="true"></div>
-      <div class="saved" id="saved" role="status"></div>
-      <div class="actions">
-        <button class="btn primary" id="exportBtn">My picks &amp; backup</button>
-        <div class="views" role="group" aria-label="View">
-          <button data-v="cards" aria-pressed="true">Cards</button>
-          <button data-v="swipe" aria-pressed="false">Swipe</button>
-          <button data-v="map" aria-pressed="false">Map</button>
+    <div class="mgrid">
+      <div>
+        <h1 class="season" id="seasonTitle"></h1>
+        <p class="lede" id="lede"></p>
+      </div>
+      <div class="side">
+        <div class="tally" id="tally"></div>
+        <div class="bar" id="bar" aria-hidden="true"></div>
+        <div class="saved" id="saved" role="status"></div>
+        <div class="actions">
+          <button class="btn primary" id="exportBtn">Picks &amp; settings</button>
+          <div class="views" role="group" aria-label="View">
+            <button data-v="cards" aria-pressed="true">Cards</button>
+            <button data-v="swipe" aria-pressed="false">Swipe</button>
+            <button data-v="together" aria-pressed="false">Together</button>
+            <button data-v="map" aria-pressed="false">Map</button>
+          </div>
         </div>
       </div>
     </div>
@@ -430,7 +555,8 @@ body[data-view="map"] #sections{display:none!important}
 <div class="topbar" id="topbar">
   <label class="tb-s" title="Switch trip"><b id="tbSeasonName"></b><select id="tbSeason" aria-label="Which trip"><option value="sp">Spring</option><option value="su">Summer</option><option value="fa">Fall</option><option value="wi">Winter</option></select></label>
   <span class="tb-c" id="tbInfo"></span>
-  <button class="btn" id="railbtn"><svg class="ico" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="n" id="fcount" hidden></span></button>
+  <button class="tb-who" id="tbWho" title="Switch person"><span class="av sm p1" id="tbAv">?</span></button>
+  <button class="btn" id="railbtn"><svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="n" id="fcount" hidden></span></button>
 </div>
 
 <div class="shell">
@@ -439,7 +565,7 @@ body[data-view="map"] #sections{display:none!important}
     <div class="rail-h"><h2>Filters</h2><button class="btn" id="railclose">Done</button></div>
     <input class="search" id="q" type="search" placeholder="Search places, food, festivals…" aria-label="Search" autocomplete="off">
     <section id="decSection">
-      <div class="fhead"><h2>Decision</h2></div>
+      <div class="fhead"><h2>My decision</h2></div>
       <div class="seg" id="sfilters">
         <button class="wide" data-f="all" aria-pressed="true"><span class="lb">All</span><span class="n"></span></button>
         <button class="wide" data-f="none" aria-pressed="false"><span class="lb">To decide</span><span class="n"></span></button>
@@ -478,6 +604,16 @@ body[data-view="map"] #sections{display:none!important}
         </div>
       </div>
     </section>
+    <section class="togview" id="togview" aria-label="Together">
+      <div class="tog-h">
+        <div><h2>Together</h2><p id="togSub"></p></div>
+        <div class="duo" id="togDuo"></div>
+      </div>
+      <div class="tog-tabs" id="togTabs" role="group" aria-label="Show"></div>
+      <p class="tog-help" id="togHelp"></p>
+      <div id="togBanner"></div>
+      <div class="tog-list" id="togList"></div>
+    </section>
     <section class="mapview" id="mapview" aria-label="Map">
       <div class="maphead">
         <h2>On the map</h2>
@@ -493,15 +629,34 @@ body[data-view="map"] #sections{display:none!important}
 <nav class="tabbar" id="tabbar" aria-label="Views">
   <button data-v="cards" aria-pressed="true"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Browse</button>
   <button data-v="swipe" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><rect x="6" y="3.5" width="12" height="16" rx="2.5" transform="rotate(8 12 11.5)"/><path d="M4.5 8.5 3.6 17a2.4 2.4 0 0 0 2.2 2.7l5.2.6"/></svg>Swipe</button>
+  <button data-v="together" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"/><circle cx="16.5" cy="10.5" r="2.6"/><path d="M3.5 19c.7-3 3-4.6 5.5-4.6s4.8 1.6 5.5 4.6"/><path d="M14.5 15.2c.6-.3 1.3-.4 2-.4 2 0 3.6 1.3 4 3.8"/></svg>Together</button>
   <button data-v="map" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Map</button>
   <button data-v="picks" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/></svg>Picks<span class="badge" id="tabBadge" hidden></span></button>
 </nav>
 
 <div class="panel" id="panel" hidden>
   <div class="panel-in" role="dialog" aria-modal="true" aria-labelledby="ph">
-    <div class="panel-h"><h2 id="ph">My picks</h2><button class="btn" id="pclose">Close</button></div>
+    <div class="panel-h"><h2 id="ph">Picks &amp; settings</h2><button class="btn" id="pclose">Close</button></div>
     <div class="panel-b">
       <div class="status-card" id="saveCard"></div>
+      <section>
+        <h3>Who’s planning on this device</h3>
+        <div class="segbtns" id="whoSeg"></div>
+      </section>
+      <section id="syncSec">
+        <h3>Sharing between devices</h3>
+        <p id="syncText"></p>
+        <div class="field" id="codeField" hidden><input id="codeInput" placeholder="Paste your trip code" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn primary" id="codeBtn">Join</button></div>
+        <div class="row"><button class="btn" id="inviteBtn" hidden>Copy invite link</button><button class="linkbtn" id="leaveBtn" hidden>Stop syncing on this device</button></div>
+      </section>
+      <section>
+        <h3>Appearance</h3>
+        <div class="segbtns" id="themeSeg">
+          <button data-theme="auto">Match device</button>
+          <button data-theme="light">Light</button>
+          <button data-theme="dark">Dark</button>
+        </div>
+      </section>
       <section id="installSec" hidden>
         <h3>Install on this device</h3>
         <p id="installText">Add it to your Home Screen so it opens like an app and works offline.</p>
@@ -515,30 +670,42 @@ body[data-view="map"] #sections{display:none!important}
       </section>
       <section>
         <h3 id="exportTitle">Share my picks</h3>
-        <p>Copy this list to paste anywhere, or save it as a file.</p>
+        <div class="segbtns" id="expSeg">
+          <button data-exp="me" aria-pressed="true">My picks</button>
+          <button data-exp="both" aria-pressed="false">Both of us</button>
+        </div>
         <textarea id="exportText" readonly aria-label="Exported picks"></textarea>
         <div class="row">
-          <button class="btn primary" id="copyBtn">Copy picks</button>
+          <button class="btn primary" id="copyBtn">Copy</button>
           <button class="btn" id="shareBtn" hidden>Share…</button>
           <button class="btn" id="dlMd">Save as file (.md)</button>
         </div>
       </section>
       <section>
-        <h3>Move progress between devices</h3>
-        <p>Your picks save on each device separately. To carry them from your Mac to your phone (or back), save a backup on one, AirDrop or email it, and restore it on the other. Restoring adds to what’s already there; for anything decided on both, the backup wins.</p>
+        <h3>Backup</h3>
+        <p>A backup file holds every pick and note for both of you, across all four trips. Restoring merges it in; the newer decision wins.</p>
         <div class="row">
-          <button class="btn" id="dlJson">Save backup (all 4 trips)</button>
+          <button class="btn" id="dlJson">Save backup</button>
           <label class="btn" for="importFile">Restore a backup</label>
           <input type="file" id="importFile" accept=".json,application/json,text/plain" hidden>
         </div>
       </section>
       <section>
         <div class="row" style="justify-content:space-between">
-          <span id="resetMsg" style="color:var(--muted);font-size:13px">Clear every decision in this trip only.</span>
-          <button class="linkbtn" id="resetBtn">Clear this trip’s decisions</button>
+          <span id="resetMsg" style="color:var(--muted);font-size:13px">Clear your decisions in this trip only.</span>
+          <button class="linkbtn" id="resetBtn">Clear my decisions for this trip</button>
         </div>
       </section>
     </div>
+  </div>
+</div>
+
+<div class="who-sheet" id="whoSheet" hidden>
+  <div class="who-in">
+    <div><div class="eyebrow" style="margin-bottom:12px">Europe, four seasons</div><h2 id="whoTitle">Who’s planning?</h2></div>
+    <p id="whoSub">Your picks are kept separately, and you can see each other’s in Together.</p>
+    <div class="who-opts" id="whoOpts"></div>
+    <div class="alt" id="whoAlt" hidden></div>
   </div>
 </div>
 
@@ -575,17 +742,31 @@ body[data-view="map"] #sections{display:none!important}
 <div class="toast" id="toast" hidden></div>
 
 <script>/*__LEAFLET_JS__*/</script>
+<script>/*__FIREBASE_JS__*/</script>
 <script>
 const DATA = __DATA__;
 const BASEMAP = __BASEMAP__;
 const PHOTOS = __PHOTOS__;
+const FBCFG = __FIREBASE_CONFIG__;
 const VERSION = '__VERSION__';
+const PEOPLE = ['Daniel', 'Kit'];
 const SK = ['sp','su','fa','wi'];
 const SEASON_NAMES = {sp:'Spring', su:'Summer', fa:'Fall', wi:'Winter'};
 const LABEL = {keep:'Keep', maybe:'Maybe', skip:'Skip'};
-const IMGKEY = 'euro-trip-img-v1', PREFKEY = 'euro-trip-prefs-v2', SAVEDKEY = 'euro-trip-savedat-v2';
-const keyOf = s => 'euro-trip-' + s + '-v1';
+const IMGKEY = 'euro-trip-img-v1', PREFKEY = 'euro-trip-prefs-v2';
+const legacyKey = s => 'euro-trip-' + s + '-v1';
+const keyOf = (p, s) => 'euro-trip-p-' + p + '-' + s + '-v2';
 const HOSTED = /^https?:$/.test(location.protocol);
+const ICON = {
+  check:'<svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  q:'<svg class="ico" viewBox="0 0 24 24"><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>',
+  x:'<svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  note:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  arrow:'<svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  sun:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon:'<svg class="ico" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>',
+  auto:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg>'
+};
 let storageOK = true;
 const store = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
@@ -593,9 +774,15 @@ const store = {
 };
 try{ localStorage.setItem('euro-trip-test', '1'); localStorage.removeItem('euro-trip-test'); }catch(e){ storageOK = false; }
 
-const dec = {}; SK.forEach(s => dec[s] = store.get(keyOf(s), {}));
 let imgs = store.get(IMGKEY, {});
 let prefs = store.get(PREFKEY, {});
+const D = {};
+PEOPLE.forEach(p => { D[p] = {}; SK.forEach(s => D[p][s] = store.get(keyOf(p, s), {})); });
+let me = PEOPLE.includes(prefs.person) ? prefs.person : null;
+const them = () => PEOPLE.find(p => p !== me) || PEOPLE[1];
+const initial = p => (p || '?').slice(0, 1);
+const avClass = p => p === PEOPLE[0] ? 'p1' : 'p2';
+
 const byId = {};
 DATA.countries.forEach(c => c.items.forEach(it => { byId[it.id] = {it, c}; }));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -612,56 +799,87 @@ function scope(){
   COUNTRIES = DATA.countries.map(c => ({c, items: c.items.filter(i => i.s.includes(S))})).filter(x => x.items.length);
   ALL = COUNTRIES.flatMap(x => x.items);
 }
-function statusOf(id){ return (dec[S][id] && dec[S][id].s) || ''; }
-function noteOf(id){ return (dec[S][id] && dec[S][id].n) || ''; }
+const mine = () => D[me || PEOPLE[0]][S];
+function entry(id, p){ const m = D[p || me || PEOPLE[0]][S]; return m[id]; }
+function statusOf(id, p){ const e = entry(id, p); return (e && e.s) || ''; }
+function noteOf(id, p){ const e = entry(id, p); return (e && e.n) || ''; }
+function partnerStatus(id){ return me ? statusOf(id, them()) : ''; }
 
-/* saving: every change writes to this device's storage straight away */
-function save(){
-  const ok = store.set(keyOf(S), dec[S]);
-  if (ok){ prefs.savedAt = Date.now(); store.set(PREFKEY, prefs); }
+/* saving: each change goes to this device's storage straight away, then to the shared database */
+function persistLocal(p, s){
+  const ok = store.set(keyOf(p, s), D[p][s]);
+  if (ok && p === me){ prefs.savedAt = Date.now(); store.set(PREFKEY, prefs); }
+  return ok;
+}
+function writeEntry(id, patch){
+  const m = mine();
+  const cur = m[id] || {s:'', n:''};
+  m[id] = {s: patch.s !== undefined ? patch.s : (cur.s || ''), n: patch.n !== undefined ? patch.n : (cur.n || ''), t: Date.now()};
+  const ok = persistLocal(me, S);
   showSaved(ok);
+  return ok;
 }
 function timeStr(t){ return new Date(t).toLocaleTimeString('en-CA', {hour:'numeric', minute:'2-digit'}); }
-function showSaved(ok, quiet){
+function showSaved(ok){
   const el = $('#saved');
   if (!storageOK || ok === false){
-    el.classList.add('warn');
-    el.innerHTML = '⚠ This browser isn’t letting the page save. Use “My picks & backup” to save a backup.';
+    el.className = 'saved warn';
+    el.innerHTML = '⚠ This browser isn’t letting the page save. Open “Picks & settings” and save a backup.';
     return;
   }
-  el.classList.remove('warn');
   const t = prefs.savedAt;
-  el.innerHTML = `<svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>` + (t ? (quiet ? `Saved on this device · last change ${timeStr(t)}` : `Saved on this device · ${timeStr(t)}`) : 'Saves automatically on this device as you go');
+  let txt, cls = 'saved';
+  if (sync.state === 'live'){ txt = `Synced${me ? ' · ' + me : ''}${t ? ' · last change ' + timeStr(t) : ''}`; cls += ' live'; }
+  else if (sync.state === 'offline') txt = 'Saved on this device · will sync when you’re back online';
+  else if (sync.state === 'connecting') txt = 'Saved on this device · connecting…';
+  else if (sync.state === 'error') txt = 'Saved on this device · sync paused';
+  else txt = t ? `Saved on this device · ${timeStr(t)}` : 'Saves automatically on this device as you go';
+  el.className = cls;
+  el.innerHTML = (sync.state === 'off' ? `<svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>` : '<span class="pulse"></span>') + esc(txt);
 }
 function persist(){ try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){} }
 addEventListener('storage', e => {
-  SK.forEach(s => { if (e.key === keyOf(s)){ dec[s] = store.get(keyOf(s), {}); if (s === S) rebuild(); } });
+  PEOPLE.forEach(p => SK.forEach(s => { if (e.key === keyOf(p, s)){ D[p][s] = store.get(e.key, {}); if (s === S) rebuild(); } }));
 });
 
-/* season theme */
+/* season colours and light/dark */
+function isDark(){ const t = prefs.theme; return t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches); }
+function applyMode(){
+  const t = prefs.theme || 'auto';
+  if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  $('#themeBtn').innerHTML = t === 'dark' ? ICON.moon : t === 'light' ? ICON.sun : ICON.auto;
+  $('#themeBtn').title = t === 'dark' ? 'Dark mode (tap to change)' : t === 'light' ? 'Light mode (tap to change)' : 'Matching your device (tap to change)';
+  $$('#themeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.theme === t));
+  const m = DATA.seasons[S];
+  document.querySelector('meta[name="theme-color"]').content = isDark() ? m.dsoft : m.accent;
+  if (mapReady){ refreshPalette(); drawMarkers(); }
+}
+function setMode(t){ prefs.theme = t; store.set(PREFKEY, prefs); applyMode(); }
 function applyTheme(){
   const m = DATA.seasons[S];
   const sea = (light) => light ? 'color-mix(in srgb,' + m.accent + ' 9%,#E9EEF2)' : 'color-mix(in srgb,' + m.daccent + ' 8%,#0B0E12)';
   const light = `--paper:${m.paper};--sunken:${m.sunken};--line:${m.line};--accent:${m.accent};--accent-soft:${m.soft};--mast-bg:${m.accent};--mast-ink:#FFFFFF;--sea:${sea(true)};--land:#FBFBF9;--border:${m.line}`;
-  const dark = `--paper:${m.dpaper};--sunken:#121518;--line:#2B3137;--accent:${m.daccent};--accent-soft:${m.dsoft};--mast-bg:${m.dsoft};--mast-ink:${m.daccent};--sea:${sea(false)};--land:#1F2429;--border:#39414A`;
+  const dark = `--paper:${m.dpaper};--sunken:#111417;--line:#2A3036;--accent:${m.daccent};--accent-soft:${m.dsoft};--mast-bg:${m.dsoft};--mast-ink:${m.daccent};--sea:${sea(false)};--land:#1F2429;--border:#39414A`;
   $('#seasonvars').textContent = `:root{${light}} @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${dark}}} :root[data-theme="dark"]{${dark}}`;
-  const dk = matchMedia('(prefers-color-scheme: dark)').matches;
-  document.querySelector('meta[name="theme-color"]').content = dk ? m.dsoft : m.accent;
   document.title = 'Europe in ' + m.name;
   $('#trips').innerHTML = SK.map(k => `<button data-season="${k}" aria-current="${k === S}">${SEASON_NAMES[k]}</button>`).join('');
   $('#seasonTitle').textContent = m.name;
   $('#lede').innerHTML = `<b>${esc(m.span)}.</b> ${esc(m.blurb)}`;
   $('#tbSeason').value = S; $('#tbSeasonName').textContent = m.name;
-  $('#exportTitle').textContent = `Share my ${m.name.toLowerCase()} picks`;
+  applyMode();
+}
+function renderWho(){
+  $('#whoAv').textContent = initial(me); $('#whoName').textContent = me || 'Who?';
+  $('#tbAv').textContent = initial(me); $('#tbAv').className = 'av sm ' + avClass(me);
+  $('#whoSeg').innerHTML = PEOPLE.map(p => `<button data-person="${p}" aria-pressed="${p === me}"><span class="av sm ${avClass(p)}">${initial(p)}</span>${esc(p)}</button>`).join('');
 }
 
 function decButtons(id, st, withNote, note){
-  return `<div class="dec">
+  return `<div class="dec"><div class="seg3">
       <button data-s="keep" aria-pressed="${st==='keep'}"><i class="dot keep"></i>Keep</button>
       <button data-s="maybe" aria-pressed="${st==='maybe'}"><i class="dot maybe"></i>Maybe</button>
       <button data-s="skip" aria-pressed="${st==='skip'}"><i class="dot skip"></i>Skip</button>
-      ${withNote ? `<button class="nb ${note ? 'has' : ''}" title="Add a note">Note</button>` : ''}
-    </div>`;
+    </div>${withNote ? `<button class="nb ${note ? 'has' : ''}" title="Add a note" aria-label="Add a note">${ICON.note}</button>` : ''}</div>`;
 }
 function photoSrc(it){
   if (PHOTOS[it.id]) return 'photos/' + it.id + '.webp';
@@ -676,25 +894,39 @@ function linksHTML(it, c){
   const q = enc(it.n + ' ' + (it.l && it.l !== c.name ? it.l + ' ' : '') + c.name);
   return `<div class="links">
         <a href="https://en.wikipedia.org/wiki/${enc(it.k.replace(/ /g,'_'))}" target="_blank" rel="noopener">Wikipedia</a>
-        <a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Google Maps</a>
-        <a href="https://www.google.com/search?tbm=isch&q=${q}" target="_blank" rel="noopener">More photos</a>
+        <a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Maps</a>
+        <a href="https://www.google.com/search?tbm=isch&q=${q}" target="_blank" rel="noopener">Photos</a>
       </div>`;
 }
 function alsoText(it){
   const others = it.s.filter(s => s !== S).map(s => SEASON_NAMES[s]);
-  return it.s.length === 4 ? 'Good in every season' : (others.length ? 'Also good in ' + others.join(', ') : 'Only this season');
+  return it.s.length === 4 ? 'Good in every season' : (others.length ? 'Also ' + others.join(', ') : 'Only this season');
+}
+function partnerHTML(id){
+  if (!me) return '';
+  const ps = partnerStatus(id);
+  if (!ps) return '';
+  return `<span class="partner" title="${esc(them())}: ${LABEL[ps]}"><span class="av sm ${avClass(them())} ring-${ps}">${initial(them())}</span>${LABEL[ps]}</span>`;
+}
+function stampHTML(id){
+  const st = statusOf(id);
+  if (!st) return '';
+  if (st === 'keep' && partnerStatus(id) === 'keep') return `<span class="stamp both"><i class="dot"></i>Both keep</span>`;
+  return `<span class="stamp"><i class="dot ${st}"></i>${LABEL[st]}</span>`;
 }
 function cardHTML(it, c){
   const st = statusOf(it.id), note = noteOf(it.id);
+  const pn = me ? noteOf(it.id, them()) : '';
+  const both = st === 'keep' && partnerStatus(it.id) === 'keep';
   return `<article class="card ${st}" id="i-${it.id}" data-id="${it.id}">
-    ${phHTML(it, c, st ? `<span class="stamp"><i class="dot ${st}"></i>${LABEL[st]}</span>` : '')}
+    ${phHTML(it, c, stampHTML(it.id) + (both ? '' : partnerHTML(it.id)))}
     <div class="body">
       <div class="meta"><span class="cat">${esc(it.c)}</span><span class="loc">${esc(it.l)}</span></div>
       <h3>${esc(it.n)}</h3>
       ${it.w ? `<div class="when"><b>When</b> ${esc(it.w)}</div>` : ''}
       <p class="desc">${esc(it.d)}</p>
-      <div class="also">${alsoText(it)}</div>
-      ${linksHTML(it, c)}
+      ${pn ? `<p class="pnote"><b>${esc(them())}:</b> ${esc(pn)}</p>` : ''}
+      <div class="foot"><span class="also">${alsoText(it)}</span>${linksHTML(it, c)}</div>
     </div>
     ${decButtons(it.id, st, true, note)}
     <div class="note ${note ? 'open' : ''}"><textarea id="n-${it.id}" placeholder="Add a note for later…">${esc(note)}</textarea></div>
@@ -706,12 +938,13 @@ function render(){
     <section class="country" id="c-${c.code}" data-code="${c.code}">
       <div class="chead">
         <div>
+          <div class="eyebrow">${esc(c.region)} Europe · ${c.code}</div>
           <h2 class="cname">${esc(c.name)}<span class="cnt">${items.length} ideas</span></h2>
-          <div class="facts"><span>${esc(c.region)} Europe</span><span>Capital <b>${esc(c.capital)}</b></span><span>${esc(c.currency)}</span><span>${esc(c.languages)}</span></div>
+          <div class="facts"><span>Capital <b>${esc(c.capital)}</b></span><span>${esc(c.currency)}</span><span>${esc(c.languages)}</span></div>
           <p class="intro">${esc(c.intro)}</p>
         </div>
         <div class="wx"><div class="t">${esc(c.weather[S].temp)}</div><p>${esc(c.weather[S].text)}</p></div>
-        <div class="ctools"><button class="linkbtn" data-swipec="${c.code}">Swipe through ${esc(c.name)}</button><button class="linkbtn" data-skiprest="${c.code}">Skip everything I haven't decided here</button></div>
+        <div class="ctools"><button class="pill" data-swipec="${c.code}">Swipe through ${esc(c.name)} ${ICON.arrow}</button><button class="linkbtn" data-skiprest="${c.code}">Skip everything I haven't decided here</button></div>
       </div>
       <div class="grid">${items.map(it => cardHTML(it, c)).join('')}</div>
     </section>`).join('') + '<p class="empty-state" id="noMatch" hidden>Nothing matches these filters. Clear the search or pick “All”.</p>';
@@ -724,8 +957,10 @@ function renderFilters(){
   const cats = Object.keys(n).sort((a,b) => ORDER.indexOf(a) - ORDER.indexOf(b));
   $('#cfilters').innerHTML = cats.map(c => `<button data-c="${esc(c)}" aria-pressed="${fCats.has(c)}"><span class="box"></span><span class="lbl">${esc(c)}</span><span class="n">${n[c]}</span></button>`).join('');
 }
+function seasonOnly(){ return $('#onlySeason').checked; }
+function inScope(it){ return !seasonOnly() || it.s.length < 4; }
 function baseMatch(it){
-  if ($('#onlySeason').checked && it.s.length === 4) return false;
+  if (!inScope(it)) return false;
   if (fCats.size && !fCats.has(it.c)) return false;
   if (q){
     const hay = (it.n + ' ' + it.d + ' ' + it.l + ' ' + it.c + ' ' + (it.w || '') + ' ' + byId[it.id].c.name).toLowerCase();
@@ -741,11 +976,11 @@ function visible(it){
   return baseMatch(it);
 }
 function activeFilterCount(){
-  return (fStatus !== 'all' ? 1 : 0) + fCats.size + (q ? 1 : 0) + ($('#hideSkip').checked ? 1 : 0) + ($('#onlySeason').checked ? 1 : 0);
+  return (fStatus !== 'all' ? 1 : 0) + fCats.size + (q ? 1 : 0) + ($('#hideSkip').checked ? 1 : 0) + (seasonOnly() ? 1 : 0);
 }
 function applyFilters(){
   let any = false;
-  const counts = {};
+  const cnts = {};
   COUNTRIES.forEach(({c, items}) => {
     let n = 0;
     items.forEach(it => {
@@ -757,27 +992,29 @@ function applyFilters(){
     const sec = document.getElementById('c-' + c.code);
     if (sec){ sec.hidden = n === 0; const cnt = sec.querySelector('.cnt'); if (cnt) cnt.textContent = items.filter(inScope).length + (seasonOnly() ? ' ideas just for this season' : ' ideas'); }
     if (n) any = true;
-    counts[c.code] = n;
+    cnts[c.code] = n;
   });
   $('#noMatch').hidden = any;
   $('#clearTypes').hidden = !fCats.size;
   const fc = activeFilterCount();
   $('#fcount').hidden = !fc; $('#fcount').textContent = fc;
-  renderList(counts);
+  renderList(cnts);
+  renderTally();
+  const v = document.body.dataset.view;
   if (mapReady) drawMarkers();
-  if (document.body.dataset.view === 'swipe') buildDeck();
+  if (v === 'swipe') buildDeck();
+  if (v === 'together') renderTogether();
 }
 
 let lastCounts;
-function renderList(counts){
-  if (counts) lastCounts = counts;
+function renderList(cnts){
+  if (cnts) lastCounts = cnts;
   const sw = document.body.dataset.view === 'swipe';
   let html = sw ? `<li><a href="#" data-code="" class="allc ${!deckCountry ? 'on' : ''}"><span class="cc">★</span><span class="nm">All countries</span><span class="ct"></span></a></li>` : '';
   let region = '';
   COUNTRIES.forEach(({c, items}) => {
     if (c.region !== region){ region = c.region; html += `<li class="rg">${esc(region)} Europe</li>`; }
-    let k = 0, m = 0, done = 0;
-    let tot = 0;
+    let k = 0, m = 0, done = 0, tot = 0;
     items.forEach(i => { if (!inScope(i)) return; tot++; const s = statusOf(i.id); if (s) done++; if (s === 'keep') k++; else if (s === 'maybe') m++; });
     const on = sw && deckCountry === c.code;
     html += `<li><a href="#c-${c.code}" data-code="${c.code}" class="${on ? 'on ' : ''}${!sw && lastCounts && lastCounts[c.code] === 0 ? 'empty' : ''}">
@@ -787,40 +1024,47 @@ function renderList(counts){
   $('#clist').innerHTML = html;
 }
 
-function seasonOnly(){ return $('#onlySeason').checked; }
-function inScope(it){ return !seasonOnly() || it.s.length < 4; }
 function counts(everything){
   let k = 0, m = 0, x = 0, n = 0;
   ALL.forEach(i => { if (!everything && !inScope(i)) return; n++; const s = statusOf(i.id); if (s === 'keep') k++; else if (s === 'maybe') m++; else if (s === 'skip') x++; });
   return {k, m, x, n, left: n - k - m - x};
 }
+let tbCountry = '';
 function renderTally(){
   const {k, m, x, n, left} = counts();
-  const pct = v => (v / n * 100).toFixed(2) + '%';
+  const pct = v => (n ? v / n * 100 : 0).toFixed(2) + '%';
   $('#tally').innerHTML = `<div><b>${fmt(k)}</b><span><i class="dot keep"></i>Keep</span></div><div><b>${fmt(m)}</b><span><i class="dot maybe"></i>Maybe</span></div><div><b>${fmt(x)}</b><span><i class="dot skip"></i>Skip</span></div><div><b>${fmt(left)}</b><span>To decide</span></div>`;
   $('#bar').innerHTML = `<i style="width:${pct(k)};background:var(--keep)"></i><i style="width:${pct(m)};background:var(--maybe)"></i><i style="width:${pct(x)};background:var(--skip)"></i>`;
   const seg = {all:n, none:left, keep:k, maybe:m, skip:x};
   $$('#sfilters button').forEach(b => b.querySelector('.n').textContent = fmt(seg[b.dataset.f]));
-  $('#tbInfo').textContent = `${fmt(k)} keep · ${fmt(m)} maybe · ${fmt(left)} to decide`;
+  const line = `${fmt(k)} keep · ${fmt(m)} maybe · ${fmt(left)} to decide`;
+  $('#tbInfo').innerHTML = tbCountry && document.body.dataset.view === 'cards' ? `<b>${esc(tbCountry)}</b>${line}` : line;
   $('#tabBadge').hidden = !k; $('#tabBadge').textContent = k > 999 ? '999+' : k;
 }
 
+let pendingRemote = new Map();
 function setStatus(id, s, force){
+  if (!me){ openWho(); return; }
   const cur = statusOf(id);
   const next = force ? s : (cur === s ? '' : s);
-  dec[S][id] = Object.assign({}, dec[S][id], {s: next});
-  if (!dec[S][id].s && !dec[S][id].n) delete dec[S][id];
-  save();
-  refreshCard(id);
+  writeEntry(id, {s: next});
+  pushEntry(id);
+  afterChange([id]);
+}
+function afterChange(ids){
+  ids.forEach(refreshCard);
   renderTally();
   renderList();
-  if (mapReady) updateMarker(id);
+  if (mapReady) ids.length > 20 ? drawMarkers() : ids.forEach(updateMarker);
+  if (document.body.dataset.view === 'together') renderTogether();
 }
 function refreshCard(id){
   const el = document.getElementById('i-' + id);
   if (!el) return;
   const {it, c} = byId[id];
   const open = el.querySelector('.note').classList.contains('open');
+  const focused = document.activeElement && el.contains(document.activeElement) && document.activeElement.tagName === 'TEXTAREA';
+  if (focused) return;
   const img = el.querySelector('.ph img');
   const tmp = document.createElement('div');
   tmp.innerHTML = cardHTML(it, c);
@@ -890,15 +1134,14 @@ function showWiki(id){
   $$(`.ph[data-pid="${id}"] img`).forEach(img => { if (url){ img.dataset.tried = '1'; img.hidden = false; img.src = url; } });
 }
 let io;
-function observePhotos(){
-  if (io) io.disconnect();
-  io = new IntersectionObserver(es => es.forEach(e => {
+function observePhotos(root){
+  if (!io) io = new IntersectionObserver(es => es.forEach(e => {
     if (!e.isIntersecting) return;
     io.unobserve(e.target);
     const img = e.target.querySelector('img');
     if (img && img.hidden && !img.dataset.tried){ img.dataset.tried = '1'; wikiFallback(e.target.dataset.pid); }
   }), {rootMargin: '900px 0px'});
-  $$('#sections .ph').forEach(ph => { const img = ph.querySelector('img'); if (img && img.hidden) io.observe(ph); });
+  (root || document).querySelectorAll('.ph').forEach(ph => { const img = ph.querySelector('img'); if (img && img.hidden && !img.dataset.tried) io.observe(ph); });
 }
 let spy;
 function observeSpy(){
@@ -906,6 +1149,8 @@ function observeSpy(){
   spy = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting){
       $$('.clist a').forEach(a => a.classList.toggle('on', a.dataset.code === e.target.dataset.code));
+      const x = COUNTRIES.find(x => x.c.code === e.target.dataset.code);
+      tbCountry = x ? x.c.name : ''; renderTally();
     }
   }), {rootMargin: '-30% 0px -65% 0px'});
   $$('.country').forEach(s => spy.observe(s));
@@ -933,14 +1178,16 @@ function nextIdx(from){
 function scardHTML(id, cls){
   const {it, c} = byId[id];
   const st = statusOf(id);
+  const pn = me ? noteOf(id, them()) : '';
   return `<article class="scard ${cls}" data-id="${id}">
-    ${phHTML(it, c, `<span class="cflag">${esc(c.name)}</span>${st ? `<span class="stamp"><i class="dot ${st}"></i>${LABEL[st]}</span>` : ''}`)}
+    ${phHTML(it, c, `<span class="cflag">${esc(c.name)}</span>${st ? stampHTML(id) : ''}${partnerHTML(id)}`)}
     <span class="slabel k">Keep</span><span class="slabel x">Skip</span><span class="slabel m">Maybe</span>
     <div class="sbody">
       <div class="meta"><span class="cat">${esc(it.c)}</span><span class="loc">${esc(it.l)}</span></div>
       <h3>${esc(it.n)}</h3>
       ${it.w ? `<div class="when"><b>When</b> ${esc(it.w)}</div>` : ''}
       <p class="desc">${esc(it.d)}</p>
+      ${pn ? `<p class="pnote"><b>${esc(them())}:</b> ${esc(pn)}</p>` : ''}
       ${linksHTML(it, c)}
     </div>
   </article>`;
@@ -950,11 +1197,11 @@ function renderDeck(anim){
   const el = $('#deck');
   const a = deck[di];
   const bIdx = nextIdx(di + 1), b = deck[bIdx];
-  const left = deck.length - di - (deck.slice(di).filter(id => !deckMatch(byId[id].it)).length);
+  const left = deck.slice(di).filter(id => deckMatch(byId[id].it)).length;
   const dc = deckCountry && COUNTRIES.find(x => x.c.code === deckCountry);
   const where = dc ? dc.c.name : 'All countries';
   $('#swTitle').textContent = deckMode === 'none' ? 'Swipe' : 'Review maybes';
-  $('#swSub').textContent = `${where} · ${fmt(Math.max(0, left))} ${deckMode === 'none' ? 'to decide' : 'maybes'}${activeFilterCount() > (fStatus !== 'all' ? 1 : 0) + ($('#hideSkip').checked ? 1 : 0) ? ' · filtered' : ''}`;
+  $('#swSub').textContent = `${where} · ${fmt(Math.max(0, left))} ${deckMode === 'none' ? 'to decide' : 'maybes'}${fCats.size || q || seasonOnly() ? ' · filtered' : ''}`;
   $('#swUndo').disabled = !undoStack.length;
   $$('.sbtns [data-sw], #swNote').forEach(x => x.disabled = !a);
   if (!a){
@@ -973,6 +1220,7 @@ function renderDeck(anim){
 }
 function decide(s, card, dir){
   if (busy) return;
+  if (!me){ openWho(); return; }
   const id = deck[di];
   if (!id) return;
   card = card || $('#deck .scard.top');
@@ -1016,7 +1264,7 @@ function dragify(card){
     lk.style.opacity = Math.max(0, Math.min(1, dx / 100));
     lx.style.opacity = Math.max(0, Math.min(1, -dx / 100));
     lm.style.opacity = up ? Math.max(0, Math.min(1, -dy / 100)) : 0;
-    if (under){ const p = Math.min(1, Math.hypot(dx, dy) / 160); under.style.transform = `scale(${.95 + .05 * p}) translateY(${14 - 14 * p}px)`; }
+    if (under){ const p = Math.min(1, Math.hypot(dx, dy) / 160); under.style.transform = `scale(${.95 + .05 * p}) translateY(${10 - 10 * p}px)`; }
   });
   const end = e => {
     if (!active || e.pointerId !== pid) return;
@@ -1035,6 +1283,7 @@ function dragify(card){
 }
 function swipeNote(){
   const id = deck[di]; if (!id) return;
+  if (!me){ openWho(); return; }
   const top = $('#deck .scard.top');
   if (top.querySelector('.sw-note')){ top.querySelector('.sw-note').remove(); return; }
   top.insertAdjacentHTML('beforeend', `<div class="sw-note"><textarea placeholder="Add a note for later…">${esc(noteOf(id))}</textarea><div class="row" style="justify-content:flex-end"><button class="btn primary" data-notedone>Done</button></div></div>`);
@@ -1042,51 +1291,124 @@ function swipeNote(){
   ta.focus();
   ta.addEventListener('input', () => setNote(id, ta.value));
 }
+const noteTimers = {};
 function setNote(id, v){
-  dec[S][id] = Object.assign({}, dec[S][id], {n: v});
-  if (!dec[S][id].s && !dec[S][id].n) delete dec[S][id];
-  save();
+  if (!me){ openWho(); return; }
+  writeEntry(id, {n: v});
+  clearTimeout(noteTimers[id]); noteTimers[id] = setTimeout(() => pushEntry(id), 700);
   const card = document.getElementById('i-' + id);
-  if (card){ card.querySelector('.nb').classList.toggle('has', !!v); const ta = card.querySelector('textarea'); if (ta && ta.value !== v){ ta.value = v; card.querySelector('.note').classList.toggle('open', !!v); } }
+  if (card){ card.querySelector('.nb').classList.toggle('has', !!v); const ta = card.querySelector('.note textarea'); if (ta && ta.value !== v){ ta.value = v; card.querySelector('.note').classList.toggle('open', !!v); } }
+}
+
+/* together */
+let togTab = 'both';
+function togBucket(id){
+  const a = statusOf(id), b = partnerStatus(id);
+  if (a === 'keep' && b === 'keep') return 'both';
+  if ((a === 'keep' && b === 'skip') || (a === 'skip' && b === 'keep')) return 'clash';
+  if (a === 'keep') return 'mine';
+  if (b === 'keep') return 'theirs';
+  if ((a === 'maybe' || b === 'maybe') && a !== 'skip' && b !== 'skip') return 'maybe';
+  return '';
+}
+function renderTogether(){
+  const box = $('#togList');
+  if (!me){ box.innerHTML = ''; $('#togBanner').innerHTML = `<div class="tog-banner"><span>Choose who you are first.</span><button class="btn primary" data-openwho>Choose</button></div>`; return; }
+  const B = them();
+  $('#togDuo').innerHTML = `<span class="av ${avClass(me)}">${initial(me)}</span><span class="av ${avClass(B)}">${initial(B)}</span>`;
+  $('#togSub').textContent = `${me} & ${B} · ${DATA.seasons[S].name}`;
+  const items = ALL.filter(baseMatch);
+  const cnt = {both:0, mine:0, theirs:0, maybe:0, clash:0};
+  const groups = {};
+  items.forEach(it => { const k = togBucket(it.id); if (!k) return; cnt[k]++; if (k === togTab){ const code = byId[it.id].c.code; (groups[code] = groups[code] || []).push(it); } });
+  const tabs = [['both','Both keep'],['mine','Only ' + me],['theirs','Only ' + B],['maybe','Maybe pile'],['clash','Disagree']];
+  $('#togTabs').innerHTML = tabs.map(([k, l]) => `<button class="tt" data-tt="${k}" aria-pressed="${k === togTab}">${esc(l)} <b>${fmt(cnt[k])}</b></button>`).join('');
+  const help = {
+    both: 'Ideas you’ve both kept. These are the easy yeses.',
+    mine: `You kept these and ${B} hasn’t, so far. Worth a look from ${B}.`,
+    theirs: `${B} kept these and you haven’t. Decide on them right here.`,
+    maybe: 'At least one of you said maybe, and nobody said skip.',
+    clash: 'One of you kept it, the other skipped it. Talk these through.'
+  };
+  $('#togHelp').textContent = help[togTab];
+  const partnerAny = SK.some(s => Object.values(D[B][s]).some(e => e.s));
+  let banner = '';
+  if (!syncActive()) banner = `<div class="tog-banner"><span>${B}’s picks show up here once this device is syncing.</span><button class="btn" data-openpicks>Set up sharing</button></div>`;
+  else if (!partnerAny) banner = `<div class="tog-banner"><span>${B} hasn’t made any picks yet. Theirs will appear here as soon as they start.</span><button class="btn" id="inviteBtn2">Copy invite link</button></div>`;
+  $('#togBanner').innerHTML = banner;
+  const order = COUNTRIES.map(x => x.c.code).filter(code => groups[code]);
+  if (!order.length){ box.innerHTML = `<p class="empty-state">Nothing here yet${fCats.size || q || seasonOnly() ? ' with these filters' : ''}.</p>`; return; }
+  box.innerHTML = order.map(code => {
+    const c = byId[groups[code][0].id].c;
+    return `<h3 class="tog-c">${esc(c.name)} <small>${groups[code].length}</small></h3>` + groups[code].map(it => {
+      const a = statusOf(it.id), b = partnerStatus(it.id);
+      const who = (p, s) => `<span><span class="av sm ${avClass(p)}">${initial(p)}</span>${s ? `<i class="dot ${s}"></i>${LABEL[s]}` : 'Not yet'}</span>`;
+      return `<div class="trow" data-id="${it.id}">${phHTML(it, c)}
+        <div><h4 data-goto="${it.id}">${esc(it.n)}</h4><div class="sub">${esc(it.c)} · ${esc(it.l)}</div><div class="who">${who(me, a)}${who(B, b)}</div></div>
+        <div class="mini"><button data-s="keep" aria-pressed="${a==='keep'}" title="Keep">${ICON.check}</button><button data-s="maybe" aria-pressed="${a==='maybe'}" title="Maybe">${ICON.q}</button><button data-s="skip" aria-pressed="${a==='skip'}" title="Skip">${ICON.x}</button></div>
+      </div>`;
+    }).join('');
+  }).join('');
+  observePhotos(box);
 }
 
 /* map: an offline outline of Europe, with street tiles on top when online */
-let map, layer, mapReady = false, markers = {}, tiles, PAL;
+let map, layer, mapReady = false, markers = {}, tiles, PAL, base;
 function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
-function style(st){
-  if (st === 'keep') return {radius:8, color:'#fff', weight:2, fillColor:PAL.keep, fillOpacity:1};
-  if (st === 'maybe') return {radius:7, color:'#fff', weight:2, fillColor:PAL.maybe, fillOpacity:1};
-  if (st === 'skip') return {radius:4.5, color:'#fff', weight:1, fillColor:PAL.skip, fillOpacity:.75};
-  return {radius:4.5, color:'#fff', weight:.8, fillColor:PAL.open, fillOpacity:.8};
+function refreshPalette(){
+  PAL = {keep:cssVar('--keep'), maybe:cssVar('--maybe'), skip:cssVar('--skip'), open:cssVar('--open'), ring:isDark() ? '#14181B' : '#fff'};
+  if (base) base.setStyle({color:cssVar('--border'), fillColor:cssVar('--land')});
 }
-const RANK = {'':0, skip:1, maybe:2, keep:3};
+function markerKey(id){
+  if (prefs.mapMode === 'together' && me){
+    const b = togBucket(id);
+    return b === 'both' ? 'both' : (b === 'mine' || b === 'theirs') ? 'one' : b === 'maybe' ? 'maybe' : b === 'clash' ? 'clash' : '';
+  }
+  return statusOf(id);
+}
+function style(k){
+  const r = PAL.ring;
+  if (k === 'keep' || k === 'both') return {radius:k === 'both' ? 9 : 8, color:r, weight:2, fillColor:PAL.keep, fillOpacity:1};
+  if (k === 'one') return {radius:6.5, color:r, weight:1.5, fillColor:PAL.keep, fillOpacity:.55};
+  if (k === 'maybe') return {radius:7, color:r, weight:2, fillColor:PAL.maybe, fillOpacity:1};
+  if (k === 'skip') return {radius:4.5, color:r, weight:1, fillColor:PAL.skip, fillOpacity:.75};
+  if (k === 'clash') return {radius:6.5, color:PAL.skip, weight:2.5, fillColor:PAL.keep, fillOpacity:.6};
+  return {radius:4.5, color:r, weight:.8, fillColor:PAL.open, fillOpacity:.8};
+}
+const RANK = {'':0, skip:1, maybe:2, one:2, clash:2, keep:3, both:4};
 function popupHTML(id){
   const {it, c} = byId[id];
-  const st = statusOf(id);
+  const st = statusOf(id), b = partnerStatus(id);
   return `<div class="pop" data-id="${id}">
     ${phHTML(it, c)}
     <div class="meta"><span class="cat">${esc(it.c)}</span><span class="loc">${esc(it.l)}, ${esc(c.code)}</span></div>
     <h3>${esc(it.n)}</h3>
     ${it.w ? `<div class="when"><b>When</b> ${esc(it.w)}</div>` : ''}
     <p>${esc(it.d)}</p>
+    ${me && b ? `<div class="who"><span><span class="av sm ${avClass(them())}">${initial(them())}</span><i class="dot ${b}"></i>${esc(them())}: ${LABEL[b]}</span></div>` : ''}
     ${decButtons(id, st, false)}
     <div class="go"><button class="linkbtn" data-goto="${id}">Show the full card</button></div>
   </div>`;
 }
-let base;
 function initMap(){
-  PAL = {keep:cssVar('--keep'), maybe:cssVar('--maybe'), skip:cssVar('--skip'), open:cssVar('--open')};
   map = L.map('map', {preferCanvas:true, zoomSnap:.5, maxBounds:[[20,-60],[80,80]], minZoom:3}).fitBounds([[35,-24],[70,40]]);
   map.createPane('basePane'); map.getPane('basePane').style.zIndex = 150;
   base = L.geoJSON(BASEMAP, {pane:'basePane', renderer:L.canvas({pane:'basePane'}), interactive:false, style:() => ({color:cssVar('--border'), weight:.8, fillColor:cssVar('--land'), fillOpacity:1})}).addTo(map);
+  refreshPalette();
   layer = L.layerGroup().addTo(map);
-  const Ctl = L.Control.extend({onAdd(){ const b = L.DomUtil.create('button', 'mapctl'); b.id = 'tileBtn'; L.DomEvent.disableClickPropagation(b); b.onclick = toggleTiles; return b; }});
+  const Ctl = L.Control.extend({onAdd(){
+    const d = L.DomUtil.create('div');
+    d.innerHTML = '<button class="mapctl" id="modeBtn"></button><br><button class="mapctl" id="tileBtn"></button>';
+    L.DomEvent.disableClickPropagation(d);
+    d.querySelector('#tileBtn').onclick = toggleTiles;
+    d.querySelector('#modeBtn').onclick = toggleMapMode;
+    return d;
+  }});
   new Ctl({position:'bottomleft'}).addTo(map);
   if (prefs.tiles === true && navigator.onLine) addTiles(); else tileLabel();
   mapReady = true;
   drawMarkers();
 }
-function dark(){ return matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark'; }
 function addTiles(){
   tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -1095,21 +1417,26 @@ function addTiles(){
   tiles.on('tileerror', () => { if (++errs === 6 && tiles){ map.removeLayer(tiles); tiles = null; tileLabel(); } });
   tileLabel();
 }
-function tileLabel(){ const b = document.getElementById('tileBtn'); if (b) b.textContent = tiles ? 'Simple map' : (navigator.onLine ? 'Street map' : 'Street map (needs internet)'); }
+function tileLabel(){
+  const b = document.getElementById('tileBtn'); if (b) b.textContent = tiles ? 'Simple map' : (navigator.onLine ? 'Street map' : 'Street map (needs internet)');
+  const m = document.getElementById('modeBtn'); if (m){ m.textContent = prefs.mapMode === 'together' ? 'Showing: both of us' : 'Showing: my picks'; m.hidden = !me; }
+}
 function toggleTiles(){
   if (tiles){ map.removeLayer(tiles); tiles = null; prefs.tiles = false; }
   else { if (!navigator.onLine){ toast('Street detail needs internet. The outline map works offline.'); return; } addTiles(); prefs.tiles = true; }
   store.set(PREFKEY, prefs); tileLabel();
 }
+function toggleMapMode(){ prefs.mapMode = prefs.mapMode === 'together' ? 'mine' : 'together'; store.set(PREFKEY, prefs); tileLabel(); drawMarkers(); }
 function drawMarkers(){
   if (!layer) return;
   layer.clearLayers(); markers = {};
-  const items = ALL.filter(visible);
+  const together = prefs.mapMode === 'together' && me;
+  const items = ALL.filter(together ? baseMatch : visible);
   const placed = [], unplaced = [];
   items.forEach(it => (it.g ? placed : unplaced).push(it));
   const seen = {};
-  placed.sort((a, b) => RANK[statusOf(a.id)] - RANK[statusOf(b.id)]);
-  const cnt = {keep:0, maybe:0, skip:0, '':0};
+  placed.sort((a, b) => RANK[markerKey(a.id)] - RANK[markerKey(b.id)]);
+  const cnt = {};
   const hover = matchMedia('(hover:hover)').matches;
   placed.forEach(it => {
     const p = it.g;
@@ -1117,9 +1444,9 @@ function drawMarkers(){
     const n = seen[key] = (seen[key] || 0) + 1;
     let ll = p;
     if (n > 1){ const a = n * 2.39996, d = 0.006 * Math.sqrt(n); ll = [p[0] + d * Math.cos(a), p[1] + d * Math.sin(a) * 1.6]; }
-    const st = statusOf(it.id);
-    cnt[st]++;
-    const m = L.circleMarker(ll, style(st)).addTo(layer);
+    const k = markerKey(it.id);
+    cnt[k] = (cnt[k] || 0) + 1;
+    const m = L.circleMarker(ll, style(k)).addTo(layer);
     m.bindPopup(() => popupHTML(it.id), {maxWidth:300, autoPanPadding:[30,60]});
     if (hover) m.bindTooltip(esc(it.n), {direction:'top', offset:[0,-6]});
     markers[it.id] = m;
@@ -1130,17 +1457,21 @@ function drawMarkers(){
     : `${fmt(placed.length)} pins.`;
 }
 function legend(cnt){
-  $('#legend').innerHTML = `<span><i class="dot keep"></i>Keep <b>${fmt(cnt.keep)}</b></span><span><i class="dot maybe"></i>Maybe <b>${fmt(cnt.maybe)}</b></span><span><i class="dot skip"></i>Skip <b>${fmt(cnt.skip)}</b></span><span><i class="dot open"></i>To decide <b>${fmt(cnt[''])}</b></span>`;
+  const g = k => fmt(cnt[k] || 0);
+  $('#legend').innerHTML = prefs.mapMode === 'together' && me
+    ? `<span><i class="dot keep"></i>Both <b>${g('both')}</b></span><span><i class="dot keep" style="opacity:.55"></i>One of us <b>${g('one')}</b></span><span><i class="dot maybe"></i>Maybe <b>${g('maybe')}</b></span><span><i class="dot skip"></i>Disagree <b>${g('clash')}</b></span>`
+    : `<span><i class="dot keep"></i>Keep <b>${g('keep')}</b></span><span><i class="dot maybe"></i>Maybe <b>${g('maybe')}</b></span><span><i class="dot skip"></i>Skip <b>${g('skip')}</b></span><span><i class="dot open"></i>To decide <b>${g('')}</b></span>`;
 }
 function updateMarker(id){
   const m = markers[id];
-  if (!m || !visible(byId[id].it)){ drawMarkers(); return; }
-  const st = statusOf(id);
-  m.setStyle(style(st));
-  if (st === 'keep' || st === 'maybe') m.bringToFront();
+  const together = prefs.mapMode === 'together' && me;
+  if (!m || !(together ? baseMatch : visible)(byId[id].it)){ drawMarkers(); return; }
+  const k = markerKey(id);
+  m.setStyle(style(k));
+  if (RANK[k] >= 2) m.bringToFront();
   if (m.isPopupOpen()) m.setPopupContent(popupHTML(id));
-  const cnt = {keep:0, maybe:0, skip:0, '':0};
-  Object.keys(markers).forEach(i => cnt[statusOf(i)]++);
+  const cnt = {};
+  Object.keys(markers).forEach(i => { const kk = markerKey(i); cnt[kk] = (cnt[kk] || 0) + 1; });
   legend(cnt);
 }
 function flyToCountry(code){
@@ -1157,9 +1488,9 @@ function setView(v){
   document.body.dataset.view = v;
   $$('.views button, .tabbar button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
   prefs.view = v; store.set(PREFKEY, prefs);
-  $('#decSection').hidden = v === 'swipe';
-  $('#hideSkipRow').hidden = v === 'swipe';
-  renderList();
+  $('#decSection').hidden = v === 'swipe' || v === 'together';
+  $('#hideSkipRow').hidden = v === 'swipe' || v === 'together';
+  renderList(); renderTally();
   if (v === 'map'){
     if (!mapReady) initMap(); else { map.invalidateSize(); drawMarkers(); }
     setTimeout(() => map && map.invalidateSize(), 60);
@@ -1169,27 +1500,35 @@ function setView(v){
     buildDeck();
     if (!phone()){ const top = $('#main').getBoundingClientRect().top + scrollY; window.scrollTo(0, top); }
   }
+  if (v === 'together'){
+    renderTogether();
+    if (phone()) window.scrollTo(0, 0); else { const top = $('#main').getBoundingClientRect().top + scrollY - 8; if (scrollY > top) window.scrollTo(0, top); }
+  }
   if (v === 'cards' && prev !== 'cards' && phone()) window.scrollTo(0, 0);
 }
 
 function setSeason(k){
   if (k === S) return;
   S = k; prefs.season = k; store.set(PREFKEY, prefs);
-  history.replaceState(null, '', '#' + k);
-  undoStack = []; deckCountry = ''; fCats.clear();
+  history.replaceState(null, '', location.pathname + location.search + '#' + k);
+  undoStack = []; deckCountry = ''; fCats.clear(); tbCountry = '';
   scope(); applyTheme(); renderFilters();
-  if (mapReady){ PAL = {keep:cssVar('--keep'), maybe:cssVar('--maybe'), skip:cssVar('--skip'), open:cssVar('--open')}; base.setStyle({color:cssVar('--border'), fillColor:cssVar('--land')}); }
+  if (mapReady) refreshPalette();
   rebuild();
   if (document.body.dataset.view === 'cards') window.scrollTo(0, 0);
   if (exportOpen()) $('#exportText').value = exportText();
 }
-function rebuild(){ render(); applyFilters(); renderTally(); observePhotos(); observeSpy(); if (document.body.dataset.view === 'swipe') buildDeck(); }
+function rebuild(){ render(); applyFilters(); observePhotos($('#sections')); observeSpy(); }
 
 /* export and backup */
+let expMode = 'me';
 function exportText(){
+  return expMode === 'both' && me ? exportBoth() : exportMine();
+}
+function exportMine(){
   const lines = [];
   const {k, m, x, n, left} = counts(true);
-  lines.push(`# Europe ${DATA.seasons[S].name} trip: my picks`);
+  lines.push(`# Europe ${DATA.seasons[S].name} trip: ${me ? me + '’s' : 'my'} picks`);
   lines.push(`Exported ${new Date().toISOString().slice(0,10)}. Keep ${k}, maybe ${m}, skip ${x}, undecided ${left} of ${n}.`);
   const skippedCountries = [], untouched = [];
   COUNTRIES.forEach(({c, items}) => {
@@ -1212,6 +1551,24 @@ function exportText(){
   if (untouched.length) lines.push('', `Not reviewed yet: ${untouched.join(', ')}`);
   return lines.join('\n');
 }
+function exportBoth(){
+  const A = me, B = them();
+  const lines = [`# Europe ${DATA.seasons[S].name} trip: ${A} and ${B}`, `Exported ${new Date().toISOString().slice(0,10)}.`];
+  const tot = {both:0, mine:0, theirs:0, maybe:0, clash:0};
+  ALL.forEach(i => { const k = togBucket(i.id); if (k) tot[k]++; });
+  lines.push(`Both keep ${tot.both}, only ${A} ${tot.mine}, only ${B} ${tot.theirs}, maybe pile ${tot.maybe}, disagree ${tot.clash}.`);
+  COUNTRIES.forEach(({c, items}) => {
+    const g = {both:[], mine:[], theirs:[], maybe:[], clash:[]};
+    items.forEach(i => { const k = togBucket(i.id); if (k) g[k].push(i); });
+    if (!Object.values(g).some(a => a.length)) return;
+    lines.push('', `## ${c.name}`);
+    const notes = i => [A, B].map(p => noteOf(i.id, p) ? `${p}: ${noteOf(i.id, p).replace(/\n+/g,' ')}` : '').filter(Boolean).join('; ');
+    const f = i => `- ${i.n} (${i.c}, ${i.l})` + (notes(i) ? ` — ${notes(i)}` : '');
+    const sect = (k, title) => { if (g[k].length){ lines.push(title + ':'); g[k].forEach(i => lines.push(f(i))); } };
+    sect('both', 'Both keep'); sect('mine', `Only ${A} keeps`); sect('theirs', `Only ${B} keeps`); sect('maybe', 'Maybe'); sect('clash', 'Disagree');
+  });
+  return lines.join('\n');
+}
 function download(name, text, type){
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], {type}));
@@ -1219,11 +1576,12 @@ function download(name, text, type){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
-function backupJSON(){ return JSON.stringify({app:'europe-four-seasons', version:2, saved:new Date().toISOString(), seasons:dec}, null, 1); }
+function backupJSON(){ return JSON.stringify({app:'europe-four-seasons', version:3, saved:new Date().toISOString(), people:D}, null, 1); }
 const exportOpen = () => !$('#panel').hidden;
 function openExport(){
   $('#exportText').value = exportText();
-  renderSaveCard(); renderOffline(); renderInstall();
+  $('#expSeg').hidden = !me;
+  renderSaveCard(); renderOffline(); renderInstall(); renderSync(); renderWho(); applyMode();
   $('#panel').hidden = false;
   $$('.tabbar button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === 'picks'));
 }
@@ -1233,24 +1591,171 @@ function closeExport(){
 }
 function renderSaveCard(){
   const c = $('#saveCard');
-  const total = SK.reduce((a, s) => a + Object.values(dec[s]).filter(d => d.s).length, 0);
+  const total = me ? SK.reduce((a, s) => a + Object.values(D[me][s]).filter(d => d.s).length, 0) : 0;
   if (!storageOK){ c.className = 'status-card warn'; c.innerHTML = '<span>This browser is blocking storage (a private window, perhaps), so picks won’t survive closing the page. Save a backup before you leave.</span>'; return; }
   c.className = 'status-card';
-  c.innerHTML = `<svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg><span><b>Everything saves automatically</b> on this device the moment you tap it, ${fmt(total)} decisions across all four trips${prefs.savedAt ? ` (last change ${new Date(prefs.savedAt).toLocaleString('en-CA', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})})` : ''}. You don’t need to export anything to keep your progress.</span>`;
+  const where = syncActive() ? ' and synced to your other devices' : ' on this device';
+  c.innerHTML = `${ICON.check}<span><b>Everything saves automatically</b>${where} the moment you tap it: ${fmt(total)} decisions across all four trips${prefs.savedAt ? ` (last change ${new Date(prefs.savedAt).toLocaleString('en-CA', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})})` : ''}.</span>`;
 }
+function stamp(){ return Date.now(); }
 function importBackup(text){
   const j = JSON.parse(text);
   let n = 0;
-  const merge = (s, d) => Object.keys(d || {}).forEach(id => { if (byId[id]){ dec[s][id] = d[id]; n++; } });
-  if (j.seasons) SK.forEach(s => merge(s, j.seasons[s]));
-  else if (j.season && j.decisions && SK.includes(j.season)) merge(j.season, j.decisions);
+  const changed = new Set();
+  const mergeInto = (p, s, d) => Object.keys(d || {}).forEach(id => {
+    if (!byId[id]) return;
+    const e = d[id]; const v = {s: e.s || '', n: e.n || '', t: e.t || stamp()};
+    const l = D[p][s][id];
+    if (!l || (v.t || 0) >= (l.t || 0)){ D[p][s][id] = v; n++; if (p === me) changed.add(s); if (p === them()) changed.add(s); }
+  });
+  if (j.people) PEOPLE.forEach(p => j.people[p] && SK.forEach(s => mergeInto(p, s, j.people[p][s])));
+  else if (j.seasons){ if (!me) throw new Error('pick a person'); SK.forEach(s => mergeInto(me, s, j.seasons[s])); }
+  else if (j.season && j.decisions && SK.includes(j.season)){ if (!me) throw new Error('pick a person'); mergeInto(me, j.season, j.decisions); }
   else throw new Error('not a backup');
-  SK.forEach(s => store.set(keyOf(s), dec[s]));
+  PEOPLE.forEach(p => SK.forEach(s => persistLocal(p, s)));
+  PEOPLE.forEach(p => SK.forEach(s => pushAll(p, s)));
   prefs.savedAt = Date.now(); store.set(PREFKEY, prefs);
   rebuild(); showSaved(true);
   return n;
 }
 function toast(msg, ms){ const t = $('#toast'); t.innerHTML = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, ms || 2200); }
+
+/* sharing: Firebase keeps each person's picks in sync across devices, offline-first */
+const sync = {state:'off', db:null, unsubs:[], remote:{}, started:false, user:null};
+function syncActive(){ return sync.state !== 'off'; }
+function tripCode(){ return prefs.trip || ''; }
+function docRef(p, s){ return FB.doc(sync.db, 'trips', tripCode(), 'people', p, 'seasons', s); }
+function startSync(){
+  if (sync.started || !FBCFG || !window.FB || !tripCode() || !me) { renderSync(); return; }
+  sync.started = true; sync.state = 'connecting'; showSaved();
+  try{
+    const app = FB.initializeApp(FBCFG);
+    try{ sync.db = FB.initializeFirestore(app, {localCache: FB.persistentLocalCache({tabManager: FB.persistentMultipleTabManager()})}); }
+    catch(e){ sync.db = FB.initializeFirestore(app, {localCache: FB.memoryLocalCache()}); }
+    const auth = FB.getAuth(app);
+    FB.onAuthStateChanged(auth, user => {
+      sync.user = user;
+      if (!user){ FB.signInAnonymously(auth).catch(err => { sync.state = navigator.onLine ? 'error' : 'offline'; sync.err = err && err.code; showSaved(); renderSync(); }); return; }
+      listen();
+    });
+  }catch(e){ sync.state = 'error'; sync.err = String(e); showSaved(); }
+}
+function listen(){
+  sync.unsubs.forEach(u => u()); sync.unsubs = [];
+  PEOPLE.forEach(p => SK.forEach(s => {
+    const u = FB.onSnapshot(docRef(p, s), {includeMetadataChanges:true}, snap => {
+      const d = (snap.data() && snap.data().d) || {};
+      sync.remote[p + s] = d;
+      merge(p, s, d);
+      if (p === me) uploadMissing(s, d);
+      const fromCache = snap.metadata.fromCache;
+      sync.state = fromCache ? (navigator.onLine ? 'connecting' : 'offline') : 'live';
+      showSaved();
+    }, err => { sync.state = 'error'; sync.err = err && err.code; showSaved(); renderSync(); });
+    sync.unsubs.push(u);
+  }));
+}
+function merge(p, s, remote){
+  const local = D[p][s];
+  const changed = [];
+  for (const id in remote){
+    const r = remote[id];
+    if (!r || !byId[id]) continue;
+    const l = local[id];
+    if (!l || (r.t || 0) > (l.t || 0)){ local[id] = {s: r.s || '', n: r.n || '', t: r.t || 0}; changed.push(id); }
+  }
+  if (!changed.length) return;
+  persistLocal(p, s);
+  if (s !== S) return;
+  const view = document.body.dataset.view;
+  afterChange(changed);
+  if (view === 'swipe' && p === me && changed.includes(deck[di])) renderDeck();
+}
+function uploadMissing(s, remote){
+  const local = D[me][s], ups = {};
+  for (const id in local){ const l = local[id], r = remote[id]; if (!r || (l.t || 0) > (r.t || 0)) ups[id] = l; }
+  if (Object.keys(ups).length) FB.setDoc(docRef(me, s), {d: ups}, {merge: true}).catch(() => {});
+}
+function pushEntry(id){
+  if (!sync.db || !me) return;
+  const e = mine()[id]; if (!e) return;
+  FB.setDoc(docRef(me, S), {d: {[id]: e}}, {merge: true}).catch(err => { sync.state = 'error'; sync.err = err && err.code; showSaved(); });
+}
+function pushAll(p, s){
+  if (!sync.db) return;
+  const d = D[p][s]; if (!Object.keys(d).length) return;
+  FB.setDoc(docRef(p, s), {d}, {merge: true}).catch(() => {});
+}
+function inviteLink(){ return location.origin + location.pathname + '#join=' + tripCode(); }
+function renderSync(){
+  const t = $('#syncText'), f = $('#codeField'), inv = $('#inviteBtn'), leave = $('#leaveBtn');
+  if (!FBCFG){ t.textContent = 'Sharing isn’t switched on in this copy of the app.'; f.hidden = inv.hidden = leave.hidden = true; return; }
+  if (!tripCode()){
+    t.textContent = 'Open the invite link on this device, or paste your trip code here, to sync picks between your phones and computers.';
+    f.hidden = false; inv.hidden = leave.hidden = true; return;
+  }
+  f.hidden = true; inv.hidden = false; leave.hidden = false;
+  const st = {live:'Connected. Your picks sync to every device signed in to this trip, and you can see each other’s in Together.', connecting:'Connecting…', offline:'Offline right now. Picks save here and sync the moment you’re back online.', error:`Sync hit a problem${sync.err ? ' (' + sync.err + ')' : ''}. Picks are still saving on this device.`, off:'Choose who you are to start syncing.'};
+  t.textContent = st[sync.state] || st.off;
+}
+function joinTrip(code){
+  code = (code || '').trim().replace(/^.*#join=/, '');
+  if (code.length < 12){ toast('That code looks too short'); return false; }
+  prefs.trip = code; store.set(PREFKEY, prefs);
+  if (me) startSync();
+  renderSync();
+  return true;
+}
+function readJoin(){
+  const m = location.hash.match(/join=([A-Za-z0-9_-]+)/);
+  if (!m) return;
+  joinTrip(m[1]);
+  history.replaceState(null, '', location.pathname + location.search + '#' + S);
+  setTimeout(() => toast('Joined your shared trip', 2600), 400);
+}
+
+/* who's planning */
+function legacyCount(){ return SK.reduce((a, s) => a + Object.keys(store.get(legacyKey(s), {})).length, 0); }
+function openWho(){
+  $('#whoTitle').textContent = 'Who’s planning?';
+  $('#whoSub').textContent = 'Your picks are kept separately, and you can see each other’s in Together.';
+  $('#whoOpts').innerHTML = PEOPLE.map(p => `<button data-pick="${p}"><span class="av ${avClass(p)}">${initial(p)}</span>${esc(p)}</button>`).join('');
+  $('#whoOpts').hidden = false; $('#whoAlt').hidden = true;
+  $('#whoSheet').hidden = false;
+}
+function pickPerson(p){
+  const legacy = legacyCount();
+  if (legacy && !prefs.migrated){
+    $('#whoTitle').textContent = `Hi ${p}`;
+    $('#whoSub').textContent = `This device already has ${fmt(legacy)} picks from before profiles existed. Whose are they?`;
+    $('#whoOpts').hidden = true;
+    $('#whoAlt').hidden = false;
+    $('#whoAlt').innerHTML = PEOPLE.map(x => `<button class="btn ${x === p ? 'primary' : ''}" data-migrate="${x}" data-as="${p}">They’re ${esc(x)}’s</button>`).join('') + `<button class="linkbtn" data-migrate="" data-as="${p}">Neither, leave them out</button>`;
+    return;
+  }
+  becomePerson(p);
+}
+function migrateLegacy(to){
+  if (to){
+    const t0 = Date.now() - 60000;
+    SK.forEach(s => {
+      const old = store.get(legacyKey(s), {});
+      Object.keys(old).forEach(id => { if (!D[to][s][id] && byId[id]) D[to][s][id] = {s: old[id].s || '', n: old[id].n || '', t: t0}; });
+      persistLocal(to, s);
+    });
+  }
+  prefs.migrated = true; store.set(PREFKEY, prefs);
+}
+function becomePerson(p){
+  const changed = me !== p;
+  me = p; prefs.person = p; store.set(PREFKEY, prefs);
+  $('#whoSheet').hidden = true;
+  renderWho();
+  if (changed){ undoStack = []; rebuild(); if (document.body.dataset.view === 'swipe') buildDeck(); }
+  if (!sync.started) startSync(); else listen();
+  showSaved(true);
+  persist();
+}
 
 /* offline: the service worker keeps the app; photos are fetched into the cache once */
 const PHOTO_IDS = Object.keys(PHOTOS);
@@ -1329,8 +1834,7 @@ addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPromp
 addEventListener('appinstalled', () => { deferredPrompt = null; $('#ig').hidden = true; renderInstall(); toast('Installed. Open it from your home screen.', 3500); });
 function canGuide(){ return HOSTED && !STANDALONE && (IOS || deferredPrompt); }
 function renderInstall(){
-  const sec = $('#installSec');
-  sec.hidden = !canGuide();
+  $('#installSec').hidden = !canGuide();
   if (deferredPrompt && !IOS){ $('#installText').textContent = 'Install it so it opens like an app and works offline.'; $('#installBtn').textContent = 'Install app'; }
 }
 function openGuide(){
@@ -1349,27 +1853,30 @@ async function installNow(){
   deferredPrompt = null; renderInstall();
 }
 function maybeGuide(){
-  if (!canGuide() || prefs.noGuide) return false;
+  if (!canGuide() || prefs.noGuide || !$('#whoSheet').hidden) return false;
   if (IOS){ openGuide(); return true; }
   return false;
 }
 async function maybeAutoOffline(){
-  if (!HOSTED || !PHOTO_IDS.length || !('caches' in window) || prefs.offlineAsked) return;
-  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (!HOSTED || !PHOTO_IDS.length || !('caches' in window) || prefs.offlineAsked || !$('#whoSheet').hidden) return;
   const have = await cachedCount();
   if (have >= PHOTO_IDS.length) return;
-  if (standalone){ prefs.offlineAsked = true; store.set(PREFKEY, prefs); saveOffline(); toast('Saving photos for offline in the background…', 3000); }
-  else toast('Want this to work offline? <button id="offlineToast">Save the photos</button>', 7000);
+  if (STANDALONE){ prefs.offlineAsked = true; store.set(PREFKEY, prefs); saveOffline(); toast('Saving photos for offline in the background…', 3000); }
+  else { prefs.offlineAsked = true; store.set(PREFKEY, prefs); toast('Want this to work offline? <button id="offlineToast">Save the photos</button>', 7000); }
 }
 
 function closeRail(){ $('#rail').classList.remove('open'); $('#scrim').classList.remove('on'); }
 function openRail(){ $('#rail').classList.add('open'); $('#scrim').classList.add('on'); }
+async function copyText(text, ok){
+  try{ await navigator.clipboard.writeText(text); toast(ok || 'Copied'); }
+  catch(e){ toast(esc(text), 7000); }
+}
 
 function wire(){
   document.addEventListener('click', e => {
-    const b = e.target.closest('.dec button');
+    const b = e.target.closest('.dec button, .mini button');
     if (b){
-      const holder = b.closest('.card, .pop');
+      const holder = b.closest('.card, .pop, .trow');
       const id = holder.dataset.id;
       if (b.classList.contains('nb')){
         const n = holder.querySelector('.note');
@@ -1378,6 +1885,15 @@ function wire(){
       } else setStatus(id, b.dataset.s);
       return;
     }
+    const pk = e.target.closest('[data-pick]'); if (pk){ pickPerson(pk.dataset.pick); return; }
+    const mg = e.target.closest('[data-migrate]'); if (mg){ migrateLegacy(mg.dataset.migrate); becomePerson(mg.dataset.as); return; }
+    const ps = e.target.closest('[data-person]'); if (ps){ becomePerson(ps.dataset.person); renderSaveCard(); $('#exportText').value = exportText(); return; }
+    if (e.target.closest('[data-openwho], #whoBtn, #tbWho')){ openWho(); return; }
+    if (e.target.closest('[data-openpicks]')){ openExport(); return; }
+    if (e.target.closest('#inviteBtn, #inviteBtn2')){ copyText(inviteLink(), 'Invite link copied. Open it on the other phone.'); return; }
+    const th = e.target.closest('#themeSeg [data-theme]'); if (th){ setMode(th.dataset.theme); return; }
+    const tt = e.target.closest('[data-tt]'); if (tt){ togTab = tt.dataset.tt; renderTogether(); return; }
+    const ex = e.target.closest('[data-exp]'); if (ex){ expMode = ex.dataset.exp; $$('#expSeg button').forEach(x => x.setAttribute('aria-pressed', x === ex)); $('#exportText').value = exportText(); return; }
     const sb = e.target.closest('[data-sw]');
     if (sb){ decide(sb.dataset.sw); return; }
     if (e.target.closest('#swUndo')){ undo(); return; }
@@ -1393,10 +1909,10 @@ function wire(){
     const go = e.target.closest('[data-goto]');
     if (go){
       const id = go.dataset.goto;
-      map.closePopup();
+      if (map) map.closePopup();
       fStatus = 'all'; fCats.clear(); q = ''; $('#q').value = ''; $('#hideSkip').checked = false; $('#onlySeason').checked = false;
       $$('#sfilters button').forEach(x => x.setAttribute('aria-pressed', x.dataset.f === 'all'));
-      renderFilters(); applyFilters(); setView('cards');
+      renderFilters(); setView('cards'); applyFilters();
       const el = document.getElementById('i-' + id);
       el.scrollIntoView({block:'center'});
       el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1800);
@@ -1406,6 +1922,7 @@ function wire(){
     if (v){ if (v.dataset.v !== 'picks' && exportOpen()) closeExport(); setView(v.dataset.v); return; }
     const sr = e.target.closest('[data-skiprest]');
     if (sr){
+      if (!me){ openWho(); return; }
       const x = COUNTRIES.find(x => x.c.code === sr.dataset.skiprest);
       const left = x.items.filter(i => !statusOf(i.id));
       if (!left.length){ toast('Everything here is already decided'); return; }
@@ -1414,8 +1931,11 @@ function wire(){
         setTimeout(() => { sr.classList.remove('armed'); sr.textContent = "Skip everything I haven't decided here"; }, 4000);
         return;
       }
-      left.forEach(i => { dec[S][i.id] = Object.assign({}, dec[S][i.id], {s:'skip'}); });
-      save(); rebuild();
+      const t = Date.now();
+      left.forEach(i => { mine()[i.id] = {s:'skip', n: noteOf(i.id), t}; });
+      persistLocal(me, S); showSaved(true);
+      if (sync.db){ const d = {}; left.forEach(i => d[i.id] = mine()[i.id]); FB.setDoc(docRef(me, S), {d}, {merge:true}).catch(() => {}); }
+      rebuild();
       toast(`Skipped ${left.length} in ${x.c.name}`);
       return;
     }
@@ -1427,9 +1947,11 @@ function wire(){
     const ca = e.target.closest('.clist a');
     if (ca){
       const view = document.body.dataset.view;
-      if (view === 'map'){ e.preventDefault(); flyToCountry(ca.dataset.code); }
-      else if (view === 'swipe'){ e.preventDefault(); deckCountry = ca.dataset.code; di = 0; buildDeck(); renderList(); }
-      else if (narrow()){ e.preventDefault(); const sec = document.getElementById('c-' + ca.dataset.code); closeRail(); if (sec) setTimeout(() => sec.scrollIntoView(), 30); return; }
+      e.preventDefault();
+      if (view === 'map'){ flyToCountry(ca.dataset.code); }
+      else if (view === 'swipe'){ deckCountry = ca.dataset.code; di = 0; buildDeck(); renderList(); }
+      else if (view === 'together'){ setView('cards'); const sec = document.getElementById('c-' + ca.dataset.code); if (sec) setTimeout(() => sec.scrollIntoView(), 30); }
+      else { const sec = document.getElementById('c-' + ca.dataset.code); if (sec) setTimeout(() => sec.scrollIntoView(), narrow() ? 30 : 0); }
       if (narrow()) closeRail();
       return;
     }
@@ -1442,16 +1964,20 @@ function wire(){
     }
   });
   let t; $('#q').addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { q = e.target.value.trim().toLowerCase(); applyFilters(); }, 150); });
-  $('#tbSeason').onchange = e => setSeason(e.target.value);
   $('#q').addEventListener('keydown', e => { if (e.key === 'Enter' && narrow()){ e.target.blur(); closeRail(); } });
+  $('#tbSeason').onchange = e => setSeason(e.target.value);
   $('#hideSkip').onchange = applyFilters;
-  $('#onlySeason').onchange = () => { applyFilters(); renderTally(); };
+  $('#onlySeason').onchange = applyFilters;
   $('#exportBtn').onclick = openExport;
+  $('#themeBtn').onclick = () => { const order = ['auto','light','dark']; const n = order[(order.indexOf(prefs.theme || 'auto') + 1) % 3]; setMode(n); toast(n === 'auto' ? 'Matching your device' : n === 'light' ? 'Light mode' : 'Dark mode'); };
   $('#railbtn').onclick = openRail;
   $('#railclose').onclick = closeRail;
   $('#scrim').onclick = closeRail;
   $('#pclose').onclick = closeExport;
   $('#panel').addEventListener('click', e => { if (e.target.id === 'panel') closeExport(); });
+  $('#codeBtn').onclick = () => { if (joinTrip($('#codeInput').value)){ $('#codeInput').value = ''; toast('Joined your shared trip'); } };
+  $('#leaveBtn').onclick = () => { prefs.trip = ''; store.set(PREFKEY, prefs); toast('This device will stop syncing after you reload'); renderSync(); };
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if ((prefs.theme || 'auto') === 'auto') applyMode(); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape'){ closeExport(); closeRail(); $('#ig').hidden = true; return; }
     if (document.body.dataset.view !== 'swipe' || exportOpen() || e.target.matches('input,textarea')) return;
@@ -1491,15 +2017,18 @@ function wire(){
     const r = new FileReader();
     r.onload = () => {
       try{ const n = importBackup(r.result); $('#exportText').value = exportText(); renderSaveCard(); toast(`Restored ${fmt(n)} decisions`); }
-      catch(err){ toast('That file isn’t a backup from these guides'); }
+      catch(err){ toast(err && err.message === 'pick a person' ? 'Choose who you are first' : 'That file isn’t a backup from these guides'); }
     };
     r.readAsText(f);
     e.target.value = '';
   };
   $('#resetBtn').onclick = () => {
+    if (!me) return;
     const b = $('#resetBtn');
-    if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Tap again to clear this trip'; setTimeout(() => { b.classList.remove('armed'); b.textContent = 'Clear this trip’s decisions'; }, 4000); return; }
-    dec[S] = {}; save(); rebuild();
+    if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Tap again to clear this trip'; setTimeout(() => { b.classList.remove('armed'); b.textContent = 'Clear my decisions for this trip'; }, 4000); return; }
+    const t = Date.now(), m = mine();
+    Object.keys(m).forEach(id => { m[id] = {s:'', n:'', t}; });
+    persistLocal(me, S); pushAll(me, S); rebuild();
     $('#exportText').value = exportText(); renderSaveCard();
     toast('Cleared');
   };
@@ -1508,18 +2037,19 @@ function wire(){
   $('#igOk').onclick = () => { $('#ig').hidden = true; };
   $('#igNever').onclick = () => { prefs.noGuide = true; store.set(PREFKEY, prefs); $('#ig').hidden = true; toast('You can find these steps under Picks any time'); };
   $('#igInstall').onclick = () => { $('#ig').hidden = true; installNow(); };
-  $('#igCopy').onclick = async () => { try{ await navigator.clipboard.writeText(location.href.split('#')[0]); toast('Link copied. Now open Safari and paste it.', 3500); }catch(e){ toast(location.href.split('#')[0], 6000); } };
+  $('#igCopy').onclick = () => copyText(location.href.split('#')[0], 'Link copied. Now open Safari and paste it.');
   $('#ig').addEventListener('click', e => { if (e.target.id === 'ig') $('#ig').hidden = true; });
-  addEventListener('online', () => { if (mapReady) tileLabel(); });
-  addEventListener('offline', () => { if (mapReady) tileLabel(); });
+  addEventListener('online', () => { if (mapReady) tileLabel(); showSaved(); });
+  addEventListener('offline', () => { if (mapReady) tileLabel(); if (syncActive()){ sync.state = 'offline'; showSaved(); } });
   addEventListener('resize', () => { if (mapReady && document.body.dataset.view === 'map') map.invalidateSize(); });
 }
 
-scope(); applyTheme(); render(); renderFilters(); renderTally(); applyFilters(); wire(); observePhotos(); observeSpy();
-history.replaceState(null, '', '#' + S);
-showSaved(true, true);
-if (prefs.view === 'map' || prefs.view === 'swipe') setView(prefs.view);
-if (Object.keys(dec[S]).length || prefs.savedAt) persist();
+scope(); readJoin(); applyTheme(); renderWho(); render(); renderFilters(); applyFilters(); wire(); observePhotos($('#sections')); observeSpy();
+history.replaceState(null, '', location.pathname + location.search + '#' + S);
+showSaved(true);
+if (!me) openWho(); else startSync();
+if (prefs.view === 'map' || prefs.view === 'swipe' || prefs.view === 'together') setView(prefs.view);
+if (me && (prefs.savedAt || legacyCount())) persist();
 registerSW();
 renderInstall();
 setTimeout(() => { if (!maybeGuide()) maybeAutoOffline(); }, 1800);
