@@ -8,7 +8,9 @@ const out = [];
 for (const f of fc.features){
   const g = f.geometry; if (!g) continue;
   const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
-  const keep = polys.filter(p => inBox(p[0]) && !p[0].some(([x]) => x < -40 || x > 179)).map(p => p.map(ring => {
+  const ru = f.properties.name === 'Russia';
+  const fix = ring => ru ? ring.map(([x, y]) => [Math.min(100, x < 0 ? x + 360 : x), y]) : ring;
+  const keep = polys.map(p => p.map(fix)).filter(p => inBox(p[0]) && !p[0].some(([x]) => x < -40 || x > 179)).map(p => p.map(ring => {
     const o = []; let last;
     for (const [x,y] of ring){ const pt = [r(x), r(y)]; if (!last || pt[0] !== last[0] || pt[1] !== last[1]) o.push(pt); last = pt; }
     return o;
