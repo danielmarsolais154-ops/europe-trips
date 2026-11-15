@@ -755,7 +755,7 @@ function applyFilters(){
       if (v) n++;
     });
     const sec = document.getElementById('c-' + c.code);
-    if (sec) sec.hidden = n === 0;
+    if (sec){ sec.hidden = n === 0; const cnt = sec.querySelector('.cnt'); if (cnt) cnt.textContent = items.filter(inScope).length + (seasonOnly() ? ' ideas just for this season' : ' ideas'); }
     if (n) any = true;
     counts[c.code] = n;
   });
@@ -777,19 +777,22 @@ function renderList(counts){
   COUNTRIES.forEach(({c, items}) => {
     if (c.region !== region){ region = c.region; html += `<li class="rg">${esc(region)} Europe</li>`; }
     let k = 0, m = 0, done = 0;
-    items.forEach(i => { const s = statusOf(i.id); if (s) done++; if (s === 'keep') k++; else if (s === 'maybe') m++; });
+    let tot = 0;
+    items.forEach(i => { if (!inScope(i)) return; tot++; const s = statusOf(i.id); if (s) done++; if (s === 'keep') k++; else if (s === 'maybe') m++; });
     const on = sw && deckCountry === c.code;
     html += `<li><a href="#c-${c.code}" data-code="${c.code}" class="${on ? 'on ' : ''}${!sw && lastCounts && lastCounts[c.code] === 0 ? 'empty' : ''}">
       <span class="cc">${c.code}</span><span class="nm">${esc(c.name)}</span>
-      <span class="ct">${k ? `<em><i class="dot keep"></i>${k}</em>` : ''}${m ? `<em><i class="dot maybe"></i>${m}</em>` : ''}<span>${done}/${items.length}</span></span></a></li>`;
+      <span class="ct">${k ? `<em><i class="dot keep"></i>${k}</em>` : ''}${m ? `<em><i class="dot maybe"></i>${m}</em>` : ''}<span>${done}/${tot}</span></span></a></li>`;
   });
   $('#clist').innerHTML = html;
 }
 
-function counts(){
-  let k = 0, m = 0, x = 0;
-  ALL.forEach(i => { const s = statusOf(i.id); if (s === 'keep') k++; else if (s === 'maybe') m++; else if (s === 'skip') x++; });
-  return {k, m, x, n: ALL.length, left: ALL.length - k - m - x};
+function seasonOnly(){ return $('#onlySeason').checked; }
+function inScope(it){ return !seasonOnly() || it.s.length < 4; }
+function counts(everything){
+  let k = 0, m = 0, x = 0, n = 0;
+  ALL.forEach(i => { if (!everything && !inScope(i)) return; n++; const s = statusOf(i.id); if (s === 'keep') k++; else if (s === 'maybe') m++; else if (s === 'skip') x++; });
+  return {k, m, x, n, left: n - k - m - x};
 }
 function renderTally(){
   const {k, m, x, n, left} = counts();
@@ -1185,7 +1188,7 @@ function rebuild(){ render(); applyFilters(); renderTally(); observePhotos(); ob
 /* export and backup */
 function exportText(){
   const lines = [];
-  const {k, m, x, n, left} = counts();
+  const {k, m, x, n, left} = counts(true);
   lines.push(`# Europe ${DATA.seasons[S].name} trip: my picks`);
   lines.push(`Exported ${new Date().toISOString().slice(0,10)}. Keep ${k}, maybe ${m}, skip ${x}, undecided ${left} of ${n}.`);
   const skippedCountries = [], untouched = [];
@@ -1442,7 +1445,7 @@ function wire(){
   $('#tbSeason').onchange = e => setSeason(e.target.value);
   $('#q').addEventListener('keydown', e => { if (e.key === 'Enter' && narrow()){ e.target.blur(); closeRail(); } });
   $('#hideSkip').onchange = applyFilters;
-  $('#onlySeason').onchange = applyFilters;
+  $('#onlySeason').onchange = () => { applyFilters(); renderTally(); };
   $('#exportBtn').onclick = openExport;
   $('#railbtn').onclick = openRail;
   $('#railclose').onclick = closeRail;
