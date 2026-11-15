@@ -69,7 +69,7 @@ def build():
                     refined += 1
 
     icon_bytes = b"".join(read("icons/" + fn, "rb") for fn in sorted(os.listdir(os.path.join(SRC, "icons"))))
-    version = hashlib.sha1((json.dumps(data, sort_keys=True) + read("app.html") + str(sorted(photos))).encode() + icon_bytes).hexdigest()[:10]
+    version = hashlib.sha1((json.dumps(data, sort_keys=True) + read("app.html") + str(sorted(photos)) + read("sw.js")).encode() + icon_bytes).hexdigest()[:10]
     html = read("app.html")
     js_data = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     basemap = read("basemap.json").replace("</", "<\\/")
