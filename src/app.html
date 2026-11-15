@@ -140,8 +140,8 @@ a{color:var(--accent)}
 .seg button:hover{background:var(--sunken)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .seg button[aria-pressed="true"] .n{color:color-mix(in srgb,var(--paper) 70%,transparent)}
-.types{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
-.types button{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:center;border:0;background:none;text-align:left;padding:6px;border-radius:8px;font-size:14px;color:var(--ink)}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px}
+.types button{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:7px;align-items:center;border:0;background:none;text-align:left;padding:6px;border-radius:8px;font-size:14px;color:var(--ink)}
 .types button:hover{background:var(--sunken)}
 .types .box{width:16px;height:16px;border:1.5px solid var(--faint);border-radius:4px;display:grid;place-items:center}
 .types .n{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
@@ -171,21 +171,26 @@ main{padding-block:12px 120px;min-width:0}
 
 /* country section */
 .country{padding-top:64px;scroll-margin-top:8px}
-.chead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:14px 48px;align-items:end;border-top:1px solid var(--ink);padding-top:20px}
+.chead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:18px 56px;align-items:start;border-top:1px solid var(--ink);padding-top:22px}
 .chead .eyebrow{margin-bottom:10px}
 .cname{margin:0;font:400 clamp(44px,5.4vw,78px)/.95 var(--serif);letter-spacing:-.025em;text-wrap:balance}
-.cname .cnt{font:italic 400 .32em/1 var(--serif);color:var(--muted);letter-spacing:0;margin-left:.4em;white-space:nowrap}
-.facts{color:var(--muted);font-size:13.5px;margin-top:14px;line-height:1.6}
-.facts span{display:inline}
-.facts span:not(:last-child)::after{content:"·";margin:0 8px;color:var(--faint)}
-.facts b{color:var(--ink);font-weight:600}
+.cnt{margin-top:10px;font:italic 400 17px/1.2 var(--serif);color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,auto));justify-content:start;gap:12px 36px;margin:20px 0 0}
+.facts div{min-width:0}
+.facts dt{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.facts dd{margin:0;font-size:14.5px;font-weight:500;color:var(--ink);line-height:1.4}
 .intro{margin:14px 0 0;max-width:60ch;font-size:16px;line-height:1.6}
-.wx{background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:var(--ring)}
-.wx .t{font:italic 500 30px/1 var(--serif);color:var(--accent);font-variant-numeric:lining-nums}
-.wx p{margin:8px 0 0;font-size:13.5px;line-height:1.5;color:var(--muted)}
-.ctools{grid-column:1/-1;display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.wx{background:var(--surface);border-radius:16px;padding:18px 20px 20px;box-shadow:var(--ring);align-self:start}
+.wx-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.wx .t{font:italic 500 32px/1 var(--serif);color:var(--accent);font-variant-numeric:lining-nums;white-space:nowrap}
+.wx p{margin:0;font-size:14px;line-height:1.6;color:var(--muted)}
+.wx-h .eyebrow{margin:0}
+.ctools{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600}
 .pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.pill.ghost:hover{background:var(--sunken);color:var(--ink)}
+.pill.armed{color:var(--skip);background:var(--skip-soft)}
 .pill .ico{width:16px;height:16px}
 .linkbtn{background:none;border:none;padding:2px 0;color:var(--muted);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;font-size:13px}
 .linkbtn:hover{color:var(--ink);text-decoration-color:currentColor}
@@ -209,16 +214,22 @@ main{padding-block:12px 120px;min-width:0}
 .stamp.both{background:var(--keep);color:var(--on-status)}
 .stamp.both .dot{background:currentColor}
 .partner{position:absolute;z-index:2;top:12px;right:12px;display:flex;align-items:center;gap:6px;background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 10px 3px 3px;font-size:12px;font-weight:700;box-shadow:0 1px 6px rgba(0,0,0,.18)}
-.body{padding:16px 18px 6px;display:flex;flex-direction:column;gap:8px;flex:1}
-.meta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
-.meta .cat{font-weight:700;color:var(--accent);white-space:nowrap;letter-spacing:.02em}
-.meta .loc{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.body{padding:18px 18px 4px;display:flex;flex-direction:column;gap:10px;flex:1}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12.5px;color:var(--muted)}
+.meta .cat{font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;letter-spacing:.12em;text-transform:uppercase}
+.meta .loc{display:inline-flex;align-items:center;gap:4px;min-width:0;overflow:hidden;white-space:nowrap}
+.meta .loc span{overflow:hidden;text-overflow:ellipsis}
+.meta .loc .ico{width:13px;height:13px;flex:none;color:var(--faint)}
 .card h3{margin:0;font:600 22px/1.15 var(--serif);letter-spacing:-.01em;text-wrap:balance}
-.when{font-size:13px;border-left:2px solid var(--accent);padding:1px 0 1px 10px;line-height:1.45;color:var(--ink)}
-.when b{font-weight:700;color:var(--accent)}
+.when{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.when .ico{width:15px;height:15px;flex:none;margin-top:2px;color:var(--accent)}
 .desc{margin:0;font-size:14.5px;line-height:1.55}
-.foot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
-.also{font-size:12px;color:var(--faint)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;padding-top:10px}
+.tag{display:inline-flex;align-items:center;font-size:12px;font-weight:600;color:var(--muted);background:var(--sunken);border-radius:999px;padding:4px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ilinks{display:flex;gap:6px;flex:none}
+.ilinks a{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);text-decoration:none;font:italic 600 15px/1 var(--serif)}
+.ilinks a:hover{color:var(--accent);border-color:var(--accent)}
+.ilinks .ico{width:16px;height:16px}
 .links{display:flex;gap:14px;font-size:12.5px;flex-wrap:wrap}
 .links a{color:var(--muted);text-decoration-color:var(--line);text-underline-offset:3px}
 .links a:hover{color:var(--ink)}
@@ -359,11 +370,14 @@ body[data-view="map"] #sections{display:none!important}
 .panel-in{background:var(--surface);border-radius:18px;max-width:780px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--shadow)}
 .panel-h{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line);gap:12px}
 .panel-h h2{margin:0;font:italic 400 32px/1 var(--serif)}
-.panel-b{padding:20px 22px 26px;overflow:auto;display:flex;flex-direction:column;gap:26px;-webkit-overflow-scrolling:touch}
-.panel-b section{display:flex;flex-direction:column;gap:10px}
-.panel-b h3{margin:0;font:italic 500 20px/1.1 var(--serif)}
+.panel-b{padding:18px 22px 26px;overflow:auto;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch;background:var(--paper)}
+.panel-b section{display:flex;flex-direction:column;gap:12px;background:var(--surface);border-radius:16px;padding:16px 18px;box-shadow:var(--ring)}
+.panel-b section.plain{background:none;box-shadow:none;padding:4px 4px 0}
+.panel-b h3{margin:0;font:700 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.srow p{flex:1 1 200px}
 .panel-b textarea{width:100%;min-height:240px;font:13px/1.5 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--paper)}
-.panel-b p{margin:0;color:var(--muted);font-size:14px}
+.panel-b p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
 .status-card{display:flex;gap:12px;align-items:flex-start;background:var(--keep-soft);color:var(--keep-ink);border-radius:12px;padding:12px 14px;font-size:14px}
 .status-card .ico{margin-top:1px}
 .status-card.warn{background:var(--skip-soft);color:var(--skip-ink)}
@@ -423,10 +437,13 @@ body[data-view="map"] #sections{display:none!important}
   .topbar .tb-s b{font:italic 500 22px/1.1 var(--serif);padding-right:16px}
   .topbar .tb-s select{position:absolute;inset:0;width:100%;opacity:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
   .topbar .tb-s::after{content:"";position:absolute;right:2px;top:50%;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);pointer-events:none}
-  .topbar .tb-c{flex:1;min-width:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
-  .topbar .tb-c b{display:block;color:var(--ink);font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
-  .topbar .btn{padding:8px 13px;font-size:13.5px;flex:none}
-  .topbar .btn .n{background:var(--accent);color:var(--surface);border-radius:999px;font-size:11px;padding:1px 6px;min-width:18px}
+  .topbar .tb-c{flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+  .topbar .tb-bar{position:absolute;left:0;right:0;bottom:-1px;height:3px;display:flex;background:transparent}
+  .topbar .tb-bar i{display:block;height:100%}
+  .topbar .ibtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink);padding:0;position:relative;flex:none}
+  .topbar .ibtn .ico{width:18px;height:18px}
+  .topbar .ibtn .n{position:absolute;top:-4px;right:-4px;background:var(--accent);color:var(--surface);border-radius:999px;font-size:10.5px;font-weight:700;padding:2px 5px;min-width:18px;text-align:center}
+
   .topbar .tb-who{border:0;background:none;padding:0;flex:none}
   .chead{grid-template-columns:minmax(0,1fr)}
   .mast{padding:calc(18px + var(--sat)) 20px 22px}
@@ -460,16 +477,19 @@ body[data-view="map"] #sections{display:none!important}
   .side{gap:10px}
   .shell{padding-inline:14px}
   main{padding-block:2px 40px}
-  .country{padding-top:36px}
+  .country{padding-top:32px}
+  .country:first-of-type{padding-top:20px}
   .chead{gap:12px;padding-top:16px}
   .chead .eyebrow{margin-bottom:6px}
   .cname{font-size:clamp(38px,11vw,52px)}
-  .cname .cnt{display:block;margin:8px 0 0;font-size:15px}
-  .facts{font-size:12.5px;margin-top:10px}
+  .cnt{margin-top:8px;font-size:16px}
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 20px;margin-top:18px}
+  .facts .wide{grid-column:1/-1}
   .intro{font-size:15px;margin-top:10px}
-  .wx{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;padding:12px 14px}
-  .wx .t{font-size:24px}
-  .wx p{margin:0;font-size:13px}
+  .wx{padding:16px 16px 18px}
+  .wx .t{font-size:28px}
+  .ctools .pill{flex:1 1 0;justify-content:center;padding:11px 14px;font-size:14px}
+  .mtools #whoBtn{display:none}
   .grid{grid-template-columns:minmax(0,1fr);gap:16px;margin-top:18px}
   .card{border-radius:18px;contain-intrinsic-size:auto 600px}
   .card h3{font-size:23px}
@@ -499,7 +519,7 @@ body[data-view="map"] #sections{display:none!important}
   .tt{flex:none}
   .trow{grid-template-columns:60px minmax(0,1fr);gap:12px}
   .trow .ph{width:60px}
-  .trow .mini{grid-column:1/-1;justify-content:flex-end;margin-top:-4px}
+  .trow .mini{grid-column:2;justify-content:flex-start;margin-top:-2px}
   body[data-view="map"] .mapview{position:fixed;top:calc(57px + var(--sat));left:0;right:0;bottom:calc(var(--tabh) + var(--sab));padding:0;z-index:5}
   body[data-view="map"] .maphead{position:absolute;z-index:500;left:10px;right:10px;top:10px;margin:0;pointer-events:none}
   body[data-view="map"] .maphead h2{display:none}
@@ -556,7 +576,8 @@ body[data-view="map"] #sections{display:none!important}
   <label class="tb-s" title="Switch trip"><b id="tbSeasonName"></b><select id="tbSeason" aria-label="Which trip"><option value="sp">Spring</option><option value="su">Summer</option><option value="fa">Fall</option><option value="wi">Winter</option></select></label>
   <span class="tb-c" id="tbInfo"></span>
   <button class="tb-who" id="tbWho" title="Switch person"><span class="av sm p1" id="tbAv">?</span></button>
-  <button class="btn" id="railbtn"><svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="n" id="fcount" hidden></span></button>
+  <button class="ibtn" id="railbtn" aria-label="Filters and countries"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="n" id="fcount" hidden></span></button>
+  <div class="tb-bar" id="tbBar" aria-hidden="true"></div>
 </div>
 
 <div class="shell">
@@ -640,11 +661,11 @@ body[data-view="map"] #sections{display:none!important}
     <div class="panel-b">
       <div class="status-card" id="saveCard"></div>
       <section>
-        <h3>Who’s planning on this device</h3>
+        <h3>Who’s using this device</h3>
         <div class="segbtns" id="whoSeg"></div>
       </section>
       <section id="syncSec">
-        <h3>Sharing between devices</h3>
+        <h3>Sharing</h3>
         <p id="syncText"></p>
         <div class="field" id="codeField" hidden><input id="codeInput" placeholder="Paste your trip code" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn primary" id="codeBtn">Join</button></div>
         <div class="row"><button class="btn" id="inviteBtn" hidden>Copy invite link</button><button class="linkbtn" id="leaveBtn" hidden>Stop syncing on this device</button></div>
@@ -659,7 +680,7 @@ body[data-view="map"] #sections{display:none!important}
       </section>
       <section id="installSec" hidden>
         <h3>Install on this device</h3>
-        <p id="installText">Add it to your Home Screen so it opens like an app and works offline.</p>
+        <p id="installText">Open it like an app and use it offline.</p>
         <div class="row"><button class="btn primary" id="installBtn">Show me how</button></div>
       </section>
       <section id="offlineSec">
@@ -669,7 +690,7 @@ body[data-view="map"] #sections{display:none!important}
         <div class="row"><button class="btn primary" id="offlineBtn">Save all photos for offline</button></div>
       </section>
       <section>
-        <h3 id="exportTitle">Share my picks</h3>
+        <h3 id="exportTitle">Share picks</h3>
         <div class="segbtns" id="expSeg">
           <button data-exp="me" aria-pressed="true">My picks</button>
           <button data-exp="both" aria-pressed="false">Both of us</button>
@@ -683,14 +704,14 @@ body[data-view="map"] #sections{display:none!important}
       </section>
       <section>
         <h3>Backup</h3>
-        <p>A backup file holds every pick and note for both of you, across all four trips. Restoring merges it in; the newer decision wins.</p>
+        <p>One file with both of your picks and notes for all four trips. Restoring merges it in.</p>
         <div class="row">
           <button class="btn" id="dlJson">Save backup</button>
           <label class="btn" for="importFile">Restore a backup</label>
           <input type="file" id="importFile" accept=".json,application/json,text/plain" hidden>
         </div>
       </section>
-      <section>
+      <section class="plain">
         <div class="row" style="justify-content:space-between">
           <span id="resetMsg" style="color:var(--muted);font-size:13px">Clear your decisions in this trip only.</span>
           <button class="linkbtn" id="resetBtn">Clear my decisions for this trip</button>
@@ -763,6 +784,10 @@ const ICON = {
   x:'<svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>',
   note:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
   arrow:'<svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  pin:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  clock:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  image:'<svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5"/></svg>',
+  cards:'<svg class="ico" viewBox="0 0 24 24"><rect x="6" y="3.5" width="12" height="16" rx="2.5" transform="rotate(8 12 11.5)"/><path d="M4.5 8.5 3.6 17a2.4 2.4 0 0 0 2.2 2.7l5.2.6"/></svg>',
   sun:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   moon:'<svg class="ico" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>',
   auto:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg>'
@@ -899,8 +924,18 @@ function linksHTML(it, c){
       </div>`;
 }
 function alsoText(it){
-  const others = it.s.filter(s => s !== S).map(s => SEASON_NAMES[s]);
-  return it.s.length === 4 ? 'Good in every season' : (others.length ? 'Also ' + others.join(', ') : 'Only this season');
+  if (it.s.length === 4) return 'All year';
+  if (it.s.length === 1) return SEASON_NAMES[S] + ' only';
+  return SK.filter(k => it.s.includes(k)).map(k => SEASON_NAMES[k]).join(' · ');
+}
+function whenHTML(it){ return it.w ? `<div class="when">${ICON.clock}<span>${esc(it.w)}</span></div>` : ''; }
+function iconLinksHTML(it, c){
+  const q = enc(it.n + ' ' + (it.l && it.l !== c.name ? it.l + ' ' : '') + c.name);
+  return `<span class="ilinks">
+      <a href="https://en.wikipedia.org/wiki/${enc(it.k.replace(/ /g,'_'))}" target="_blank" rel="noopener" title="Wikipedia" aria-label="Wikipedia">W</a>
+      <a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener" title="Google Maps" aria-label="Google Maps">${ICON.pin}</a>
+      <a href="https://www.google.com/search?tbm=isch&q=${q}" target="_blank" rel="noopener" title="More photos" aria-label="More photos">${ICON.image}</a>
+    </span>`;
 }
 function partnerHTML(id){
   if (!me) return '';
@@ -921,12 +956,12 @@ function cardHTML(it, c){
   return `<article class="card ${st}" id="i-${it.id}" data-id="${it.id}">
     ${phHTML(it, c, stampHTML(it.id) + (both ? '' : partnerHTML(it.id)))}
     <div class="body">
-      <div class="meta"><span class="cat">${esc(it.c)}</span><span class="loc">${esc(it.l)}</span></div>
+      <div class="meta"><span class="cat">${esc(it.c)}</span><span class="loc">${ICON.pin}<span>${esc(it.l)}</span></span></div>
       <h3>${esc(it.n)}</h3>
-      ${it.w ? `<div class="when"><b>When</b> ${esc(it.w)}</div>` : ''}
+      ${whenHTML(it)}
       <p class="desc">${esc(it.d)}</p>
       ${pn ? `<p class="pnote"><b>${esc(them())}:</b> ${esc(pn)}</p>` : ''}
-      <div class="foot"><span class="also">${alsoText(it)}</span>${linksHTML(it, c)}</div>
+      <div class="foot"><span class="tag">${alsoText(it)}</span>${iconLinksHTML(it, c)}</div>
     </div>
     ${decButtons(it.id, st, true, note)}
     <div class="note ${note ? 'open' : ''}"><textarea id="n-${it.id}" placeholder="Add a note for later…">${esc(note)}</textarea></div>
@@ -939,12 +974,13 @@ function render(){
       <div class="chead">
         <div>
           <div class="eyebrow">${esc(c.region)} Europe · ${c.code}</div>
-          <h2 class="cname">${esc(c.name)}<span class="cnt">${items.length} ideas</span></h2>
-          <div class="facts"><span>Capital <b>${esc(c.capital)}</b></span><span>${esc(c.currency)}</span><span>${esc(c.languages)}</span></div>
+          <h2 class="cname">${esc(c.name)}</h2>
+          <div class="cnt">${items.length} ideas</div>
+          <dl class="facts"><div><dt>Capital</dt><dd>${esc(c.capital)}</dd></div><div><dt>Currency</dt><dd>${esc(c.currency)}</dd></div><div class="wide"><dt>Languages</dt><dd>${esc(c.languages)}</dd></div></dl>
           <p class="intro">${esc(c.intro)}</p>
         </div>
-        <div class="wx"><div class="t">${esc(c.weather[S].temp)}</div><p>${esc(c.weather[S].text)}</p></div>
-        <div class="ctools"><button class="pill" data-swipec="${c.code}">Swipe through ${esc(c.name)} ${ICON.arrow}</button><button class="linkbtn" data-skiprest="${c.code}">Skip everything I haven't decided here</button></div>
+        <div class="wx"><div class="wx-h"><span class="eyebrow">${SEASON_NAMES[S]} weather</span><span class="t">${esc(c.weather[S].temp)}</span></div><p>${esc(c.weather[S].text)}</p></div>
+        <div class="ctools"><button class="pill" data-swipec="${c.code}">${ICON.cards}Swipe these</button><button class="pill ghost" data-skiprest="${c.code}">Skip the rest</button></div>
       </div>
       <div class="grid">${items.map(it => cardHTML(it, c)).join('')}</div>
     </section>`).join('') + '<p class="empty-state" id="noMatch" hidden>Nothing matches these filters. Clear the search or pick “All”.</p>';
@@ -1037,8 +1073,9 @@ function renderTally(){
   $('#bar').innerHTML = `<i style="width:${pct(k)};background:var(--keep)"></i><i style="width:${pct(m)};background:var(--maybe)"></i><i style="width:${pct(x)};background:var(--skip)"></i>`;
   const seg = {all:n, none:left, keep:k, maybe:m, skip:x};
   $$('#sfilters button').forEach(b => b.querySelector('.n').textContent = fmt(seg[b.dataset.f]));
-  const line = `${fmt(k)} keep · ${fmt(m)} maybe · ${fmt(left)} to decide`;
-  $('#tbInfo').innerHTML = tbCountry && document.body.dataset.view === 'cards' ? `<b>${esc(tbCountry)}</b>${line}` : line;
+  const v = document.body.dataset.view;
+  $('#tbInfo').textContent = v === 'cards' ? (tbCountry || '') : '';
+  $('#tbBar').innerHTML = $('#bar').innerHTML;
   $('#tabBadge').hidden = !k; $('#tabBadge').textContent = k > 999 ? '999+' : k;
 }
 
@@ -1185,7 +1222,7 @@ function scardHTML(id, cls){
     <div class="sbody">
       <div class="meta"><span class="cat">${esc(it.c)}</span><span class="loc">${esc(it.l)}</span></div>
       <h3>${esc(it.n)}</h3>
-      ${it.w ? `<div class="when"><b>When</b> ${esc(it.w)}</div>` : ''}
+      ${whenHTML(it)}
       <p class="desc">${esc(it.d)}</p>
       ${pn ? `<p class="pnote"><b>${esc(them())}:</b> ${esc(pn)}</p>` : ''}
       ${linksHTML(it, c)}
@@ -1383,7 +1420,7 @@ function popupHTML(id){
     ${phHTML(it, c)}
     <div class="meta"><span class="cat">${esc(it.c)}</span><span class="loc">${esc(it.l)}, ${esc(c.code)}</span></div>
     <h3>${esc(it.n)}</h3>
-    ${it.w ? `<div class="when"><b>When</b> ${esc(it.w)}</div>` : ''}
+    ${whenHTML(it)}
     <p>${esc(it.d)}</p>
     ${me && b ? `<div class="who"><span><span class="av sm ${avClass(them())}">${initial(them())}</span><i class="dot ${b}"></i>${esc(them())}: ${LABEL[b]}</span></div>` : ''}
     ${decButtons(id, st, false)}
@@ -1594,8 +1631,8 @@ function renderSaveCard(){
   const total = me ? SK.reduce((a, s) => a + Object.values(D[me][s]).filter(d => d.s).length, 0) : 0;
   if (!storageOK){ c.className = 'status-card warn'; c.innerHTML = '<span>This browser is blocking storage (a private window, perhaps), so picks won’t survive closing the page. Save a backup before you leave.</span>'; return; }
   c.className = 'status-card';
-  const where = syncActive() ? ' and synced to your other devices' : ' on this device';
-  c.innerHTML = `${ICON.check}<span><b>Everything saves automatically</b>${where} the moment you tap it: ${fmt(total)} decisions across all four trips${prefs.savedAt ? ` (last change ${new Date(prefs.savedAt).toLocaleString('en-CA', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})})` : ''}.</span>`;
+  const where = syncActive() ? ' and synced' : ' on this device';
+  c.innerHTML = `${ICON.check}<span><b>Saved automatically${where}</b><br>${fmt(total)} decisions across all four trips${prefs.savedAt ? ` · last change ${new Date(prefs.savedAt).toLocaleString('en-CA', {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})}` : ''}</span>`;
 }
 function stamp(){ return Date.now(); }
 function importBackup(text){
@@ -1689,13 +1726,13 @@ function pushAll(p, s){
 function inviteLink(){ return location.origin + location.pathname + '#join=' + tripCode(); }
 function renderSync(){
   const t = $('#syncText'), f = $('#codeField'), inv = $('#inviteBtn'), leave = $('#leaveBtn');
-  if (!FBCFG){ t.textContent = 'Sharing isn’t switched on in this copy of the app.'; f.hidden = inv.hidden = leave.hidden = true; return; }
+  if (!FBCFG){ t.textContent = 'Sharing isn’t available in this copy.'; f.hidden = inv.hidden = leave.hidden = true; return; }
   if (!tripCode()){
-    t.textContent = 'Open the invite link on this device, or paste your trip code here, to sync picks between your phones and computers.';
+    t.textContent = 'Paste your trip code to sync picks between devices.';
     f.hidden = false; inv.hidden = leave.hidden = true; return;
   }
   f.hidden = true; inv.hidden = false; leave.hidden = false;
-  const st = {live:'Connected. Your picks sync to every device signed in to this trip, and you can see each other’s in Together.', connecting:'Connecting…', offline:'Offline right now. Picks save here and sync the moment you’re back online.', error:`Sync hit a problem${sync.err ? ' (' + sync.err + ')' : ''}. Picks are still saving on this device.`, off:'Choose who you are to start syncing.'};
+  const st = {live:'Connected · syncing with all your devices', connecting:'Connecting…', offline:'Offline · will sync when you’re back online', error:`Sync paused${sync.err ? ' (' + sync.err + ')' : ''} · picks still save here`, off:'Choose who you are to start syncing.'};
   t.textContent = st[sync.state] || st.off;
 }
 function joinTrip(code){
@@ -1772,18 +1809,18 @@ async function renderOffline(){
   sec.hidden = false;
   const btn = $('#offlineBtn'), txt = $('#offlineText'), bar = $('#offlineBar');
   if (!HOSTED || !('caches' in window)){
-    txt.textContent = 'This copy reads its photos from the “photos” folder next to it, so it already works offline.';
+    txt.textContent = 'Photos come from the “photos” folder next to this file.';
     btn.hidden = true; bar.hidden = true; return;
   }
   const have = offlineRunning ? offlineDone : await cachedCount();
   const total = PHOTO_IDS.length;
   bar.hidden = false; bar.firstElementChild.style.width = (have / total * 100).toFixed(1) + '%';
-  if (have >= total){ txt.textContent = `All ${fmt(total)} photos are saved on this device. The app works with no internet.`; btn.hidden = true; return; }
+  if (have >= total){ txt.textContent = `All ${fmt(total)} photos saved. Works with no internet.`; btn.hidden = true; return; }
   btn.hidden = false;
-  btn.textContent = offlineRunning ? 'Pause' : (have ? 'Finish saving photos' : 'Save all photos for offline');
+  btn.textContent = offlineRunning ? 'Pause' : (have ? 'Finish saving' : 'Save all photos');
   txt.textContent = offlineRunning
-    ? `Saving photos… ${fmt(have)} of ${fmt(total)}. You can keep using the app.`
-    : `${fmt(have)} of ${fmt(total)} photos saved on this device (about ${Math.round(PHOTOS_MB * (total - have) / total)} MB left to download). The app itself already works offline; this saves every photo too. Best on Wi-Fi.`;
+    ? `Saving… ${fmt(have)} of ${fmt(total)}`
+    : `${fmt(have)} of ${fmt(total)} saved · about ${Math.round(PHOTOS_MB * (total - have) / total)} MB to go. Best on Wi\u2011Fi.`;
 }
 const PHOTOS_MB = __PHOTOS_MB__;
 async function saveOffline(){
@@ -1927,8 +1964,8 @@ function wire(){
       const left = x.items.filter(i => !statusOf(i.id));
       if (!left.length){ toast('Everything here is already decided'); return; }
       if (!sr.classList.contains('armed')){
-        sr.classList.add('armed'); sr.textContent = `Tap again to skip ${left.length} undecided`;
-        setTimeout(() => { sr.classList.remove('armed'); sr.textContent = "Skip everything I haven't decided here"; }, 4000);
+        sr.classList.add('armed'); sr.textContent = `Tap again: skip ${left.length}`;
+        setTimeout(() => { sr.classList.remove('armed'); sr.textContent = 'Skip the rest'; }, 4000);
         return;
       }
       const t = Date.now();
